@@ -1,876 +1,735 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="theme-color" content="#5b4acb" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="Rejseliste" />
+<title>Rejseliste</title>
 
-  <title>Rejseliste</title>
+<meta name="theme-color" content="#5b4acb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rejseliste">
 
-  <style>
-    * { box-sizing: border-box; }
+<style>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f4fb;
-      color: #222;
-      -webkit-user-select: none;
-      user-select: none;
-    }
+*{
+box-sizing:border-box;
+}
 
-    header {
-      background: white;
-      padding: 18px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      border-bottom: 1px solid #ddd;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+body{
+margin:0;
+font-family:Arial;
+background:#f5f4fb;
+color:#222;
+}
 
-    .app {
-      max-width: 1100px;
-      margin: auto;
-      display: grid;
-      grid-template-columns: 280px 1fr 320px;
-      gap: 20px;
-      padding: 20px;
-    }
+header{
+background:white;
+padding:18px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+border-bottom:1px solid #ddd;
+position:sticky;
+top:0;
+z-index:10;
+}
 
-    .panel {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-    }
+.app{
+max-width:1100px;
+margin:auto;
+display:grid;
+grid-template-columns:280px 1fr 320px;
+gap:20px;
+padding:20px;
+}
 
-    h2, h3 { margin-top: 0; }
+.panel{
+background:white;
+border-radius:18px;
+padding:18px;
+box-shadow:0 4px 18px rgba(0,0,0,0.08);
+}
 
-    .category {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px;
-      margin-bottom: 10px;
-      border-radius: 14px;
-      background: #f2f0fb;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease;
-    }
+h2,h3{
+margin-top:0;
+}
 
-    .category:active { transform: scale(0.98); }
+.category{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:14px;
+margin-bottom:10px;
+border-radius:14px;
+background:#f2f0fb;
+cursor:pointer;
+}
 
-    .category.active {
-      background: #ddd8ff;
-      font-weight: bold;
-    }
+.category.active{
+background:#ddd8ff;
+font-weight:bold;
+}
 
-    .category-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+.category-left{
+display:flex;
+align-items:center;
+gap:10px;
+}
 
-    .icon {
-      font-size: 22px;
-      min-width: 24px;
-    }
+.icon{
+font-size:22px;
+}
 
-    .progress {
-      font-size: 13px;
-      color: #666;
-    }
+.progress{
+font-size:13px;
+color:#666;
+}
 
-    .top-button, .save-button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 14px;
-      background: #5b4acb;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 10px;
-      margin-bottom: 14px;
-      cursor: pointer;
-    }
+.top-button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+background:#5b4acb;
+color:white;
+font-size:16px;
+font-weight:bold;
+margin-bottom:16px;
+cursor:pointer;
+}
 
-    .item-wrap {
-      position: relative;
-      overflow: hidden;
-      border-bottom: 1px solid #eee;
-      border-radius: 12px;
-    }
+.item{
+display:flex;
+align-items:center;
+gap:12px;
+padding:13px 0;
+border-bottom:1px solid #eee;
+font-size:17px;
+}
 
-    .swipe-delete {
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: 90px;
-      background: #ff3b30;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
+.item input{
+width:22px;
+height:22px;
+accent-color:#5b4acb;
+}
 
-    .item {
-      position: relative;
-      background: white;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 0;
-      font-size: 17px;
-      transition: transform 0.2s ease;
-    }
+.item.done span{
+text-decoration:line-through;
+color:#999;
+}
 
-    .item input {
-      width: 22px;
-      height: 22px;
-      accent-color: #5b4acb;
-      transform: scale(1);
-      transition: transform 0.15s ease;
-    }
+input[type="text"]{
+width:100%;
+padding:13px;
+font-size:16px;
+border-radius:12px;
+border:1px solid #ccc;
+margin-bottom:14px;
+}
 
-    .item input:checked {
-      transform: scale(1.18);
-    }
+label{
+display:block;
+margin:10px 0;
+font-size:15px;
+}
 
-    .item.done span {
-      text-decoration: line-through;
-      color: #999;
-    }
+label input{
+margin-right:8px;
+}
 
-    .edit-btn {
-      margin-left: auto;
-      border: none;
-      background: #eee;
-      border-radius: 10px;
-      padding: 7px 9px;
-      cursor: pointer;
-    }
+.save-button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+background:#5b4acb;
+color:white;
+font-size:16px;
+font-weight:bold;
+margin-top:14px;
+cursor:pointer;
+}
 
-    input[type="text"] {
-      width: 100%;
-      padding: 13px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-      margin-bottom: 14px;
-      user-select: text;
-      -webkit-user-select: text;
-    }
+.small-button{
+padding:8px 10px;
+border:none;
+border-radius:10px;
+background:#eee;
+cursor:pointer;
+margin-top:8px;
+}
 
-    label {
-      display: block;
-      margin: 10px 0;
-      font-size: 15px;
-    }
+.danger{
+background:#ffdddd;
+color:#a40000;
+}
 
-    label input { margin-right: 8px; }
+.mobile-nav{
+display:none;
+}
 
-    .small-button {
-      padding: 8px 10px;
-      border: none;
-      border-radius: 10px;
-      background: #eee;
-      cursor: pointer;
-      margin-top: 8px;
-    }
+.edit-btn{
+margin-left:auto;
+border:none;
+background:#eee;
+border-radius:10px;
+padding:7px 9px;
+cursor:pointer;
+}
 
-    .danger {
-      background: #ffdddd;
-      color: #a40000;
-    }
+.edit-box{
+background:#fff2c6;
+border-radius:12px;
+padding:10px;
+margin-bottom:14px;
+font-size:14px;
+display:none;
+}
 
-    .edit-mode-box {
-      background: #fff2c6;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 14px;
-      font-size: 14px;
-      display: none;
-    }
+.edit-box.active{
+display:block;
+}
 
-    .edit-mode-box.active { display: block; }
+@media(max-width:800px){
 
-    .mobile-nav { display: none; }
+.app{
+display:block;
+padding:14px;
+}
 
-    @media (max-width: 800px) {
-      .app {
-        display: block;
-        padding: 14px;
-      }
+.panel{
+margin-bottom:16px;
+box-shadow:none;
+}
 
-      .panel {
-        margin-bottom: 16px;
-        box-shadow: none;
-      }
+.mobile-nav{
+display:flex;
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:white;
+border-top:1px solid #ddd;
+justify-content:space-around;
+padding:10px 0;
+}
 
-      .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        border-top: 1px solid #ddd;
-        justify-content: space-around;
-        padding: 10px 0;
-        z-index: 20;
-      }
+.mobile-nav button{
+background:none;
+border:none;
+font-size:13px;
+color:#333;
+}
 
-      .mobile-nav button {
-        background: none;
-        border: none;
-        font-size: 13px;
-        color: #333;
-      }
+.screen{
+display:none;
+}
 
-      .screen { display: none; }
-      .screen.active { display: block; }
+.screen.active{
+display:block;
+}
 
-      body { padding-bottom: 80px; }
-    }
-  </style>
+body{
+padding-bottom:70px;
+}
+
+}
+
+</style>
 </head>
 
 <body>
-  <header>Rejseliste</header>
-
-  <main class="app">
-    <section id="listScreen" class="panel screen active">
-      <button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
-
-      <div id="editBox1" class="edit-mode-box">
-        Redigering er slået til. Tryk på ✏️ eller hold fingeren på en tekst.
-      </div>
-
-      <h2>Kategorier</h2>
-      <div id="categoryList"></div>
-
-      <h3>Tilføj kategori</h3>
-      <input id="newCategoryEmojiInput" type="text" placeholder="Emoji, fx 🧳 (valgfri)" />
-      <input id="newCategoryInput" type="text" placeholder="Kategorinavn, fx Medicin" />
-      <button class="save-button" onclick="addCategory()">Tilføj kategori</button>
-    </section>
-
-    <section id="detailScreen" class="panel screen active">
-      <div id="editBox2" class="edit-mode-box">
-        Redigering er slået til. Swipe til venstre for at slette.
-      </div>
-
-      <h2 id="selectedCategoryTitle">Vælg en kategori</h2>
-      <p id="selectedProgress"></p>
-      <div id="itemsList"></div>
-
-      <button class="small-button danger" onclick="deleteSelectedCategory()">Slet kategori</button>
-    </section>
-
-    <section id="addScreen" class="panel screen active">
-      <h2>Tilføj ny ting</h2>
-
-      <label>Navn på ting</label>
-      <input id="newItemInput" type="text" placeholder="Fx Pas" />
-
-      <h3>Vælg kategorier</h3>
-      <div id="categoryCheckboxes"></div>
-
-      <button class="save-button" onclick="addItem()">Gem</button>
-    </section>
-  </main>
-
-  <nav class="mobile-nav">
-    <button onclick="showScreen('listScreen')">📋<br>Liste</button>
-    <button onclick="showScreen('addScreen')">➕<br>Tilføj</button>
-    <button onclick="toggleEditMode()">✏️<br>Rediger</button>
-    <button onclick="startNewTrip()">↻<br>Ny rejse</button>
-  </nav>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
-
-    const APP_VERSION = "2026-04-30-02";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDlKEP7_KezbNVEviM77GrvlH8u68vNwTQ",
-      authDomain: "pakkeliste-a8089.firebaseapp.com",
-      databaseURL: "https://pakkeliste-a8089-default-rtdb.europe-west1.firebasedatabase.app/",
-      projectId: "pakkeliste-a8089",
-      storageBucket: "pakkeliste-a8089.firebasestorage.app",
-      messagingSenderId: "359809963583",
-      appId: "1:359809963583:web:7a98e4e94bd2fd3fdb8a8a"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const dataRef = ref(db, "rejseliste");
-
-    let editMode = false;
-    let selectedCategory = "Pernille";
-    let longPressTimer = null;
-
-    const defaultData = {
-      categories: [
-        { name: "Pernille", icon: "👩", items: [
-          { name: "Pas", done: false },
-          { name: "Undertøj", done: false },
-          { name: "Badetøj", done: false },
-          { name: "Oplader", done: false }
-        ]},
-        { name: "Michael", icon: "👨", items: [
-          { name: "Pas", done: false },
-          { name: "Underbukser", done: false },
-          { name: "Strømper", done: false }
-        ]},
-        { name: "Oliver", icon: "👦", items: [
-          { name: "Pas", done: false },
-          { name: "Bleer", done: false },
-          { name: "Sutter", done: false },
-          { name: "Nattøj", done: false }
-        ]},
-        { name: "Emma", icon: "👧", items: [
-          { name: "Pas", done: false },
-          { name: "Tøj", done: false },
-          { name: "Sutter", done: false }
-        ]}
-      ]
-    };
-
-    let data = loadLocalData() || defaultData;
-
-    function normalizeData(incomingData) {
-      if (!incomingData || !incomingData.categories) {
-        return defaultData;
-      }
-
-      const categories = Object.values(incomingData.categories).map(category => {
-        return {
-          name: category.name || "Uden navn",
-          icon: category.icon || "",
-          items: Object.values(category.items || {}).map(item => ({
-            name: item.name || "Uden navn",
-            done: !!item.done
-          }))
-        };
-      });
-
-      return { categories };
-    }
-
-    function loadLocalData() {
-      try {
-        const saved = JSON.parse(localStorage.getItem("rejseliste_cache"));
-        return normalizeData(saved);
-      } catch {
-        return null;
-      }
-    }
-
-    function saveLocalData() {
-      localStorage.setItem("rejseliste_cache", JSON.stringify(data));
-      localStorage.setItem("rejseliste_version", APP_VERSION);
-    }
-
-    function queueWrite(path, value) {
-      const queue = JSON.parse(localStorage.getItem("rejseliste_queue") || "[]");
-      queue.push({ path, value });
-      localStorage.setItem("rejseliste_queue", JSON.stringify(queue));
-    }
-
-    async function flushQueue() {
-      const queue = JSON.parse(localStorage.getItem("rejseliste_queue") || "[]");
-      if (!queue.length || !navigator.onLine) return;
-
-      const remaining = [];
-
-      for (const job of queue) {
-        try {
-          await set(ref(db, job.path), job.value);
-        } catch {
-          remaining.push(job);
-        }
-      }
-
-      localStorage.setItem("rejseliste_queue", JSON.stringify(remaining));
-    }
-
-    async function fastSet(path, value) {
-      saveLocalData();
-
-      if (!navigator.onLine) {
-        queueWrite(path, value);
-        return;
-      }
-
-      try {
-        await set(ref(db, path), value);
-      } catch {
-        queueWrite(path, value);
-      }
-    }
-
-    async function fastUpdate(path, value) {
-      saveLocalData();
-
-      if (!navigator.onLine) {
-        queueWrite(path, value);
-        return;
-      }
-
-      try {
-        await update(ref(db, path), value);
-      } catch {
-        queueWrite(path, value);
-      }
-    }
-
-    window.addEventListener("online", flushQueue);
-
-    onValue(dataRef, snapshot => {
-      if (snapshot.exists()) {
-        data = normalizeData(snapshot.val());
-      } else {
-        set(dataRef, defaultData);
-        data = defaultData;
-      }
-
-      if (!getSelectedCategory() && data.categories.length > 0) {
-        selectedCategory = data.categories[0].name;
-      }
-
-      saveLocalData();
-      render();
-      flushQueue();
-    });
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js?v=" + APP_VERSION).then(registration => {
-        registration.update();
-      }).catch(() => {});
-    }
-
-    function getSelectedCategory() {
-      return data.categories.find(c => c.name === selectedCategory);
-    }
-
-    function countDone(category) {
-      if (!category.items) return 0;
-      return Object.values(category.items).filter(item => item.done).length;
-    }
-
-    function getItemCount(category) {
-      return Object.keys(category.items || {}).length;
-    }
-
-    function render() {
-      renderCategories();
-      renderItems();
-      renderCategoryCheckboxes();
-      renderEditMode();
-      saveLocalData();
-    }
-
-    function renderEditMode() {
-      document.getElementById("editBox1").classList.toggle("active", editMode);
-      document.getElementById("editBox2").classList.toggle("active", editMode);
-    }
-
-    function renderCategories() {
-      const container = document.getElementById("categoryList");
-      container.innerHTML = "";
-
-      data.categories.forEach((category, index) => {
-        const done = countDone(category);
-        const total = getItemCount(category);
-
-        const div = document.createElement("div");
-        div.className = "category";
-
-        if (category.name === selectedCategory) div.classList.add("active");
-
-        div.onpointerdown = () => {
-          longPressTimer = setTimeout(() => {
-            if (editMode) editCategory(index);
-          }, 650);
-        };
-
-        div.onpointerup = () => clearTimeout(longPressTimer);
-        div.onpointerleave = () => clearTimeout(longPressTimer);
-
-        const left = document.createElement("div");
-        left.className = "category-left";
-
-        const icon = document.createElement("span");
-        icon.className = "icon";
-        icon.textContent = category.icon || "";
-
-        const name = document.createElement("span");
-        name.textContent = category.name;
-
-        left.appendChild(icon);
-        left.appendChild(name);
-
-        const progress = document.createElement("span");
-        progress.className = "progress";
-        progress.textContent = done + " / " + total;
-
-        div.appendChild(left);
-        div.appendChild(progress);
-
-        if (editMode) {
-          const editButton = document.createElement("button");
-          editButton.className = "edit-btn";
-          editButton.textContent = "✏️";
-          editButton.onclick = event => {
-            event.stopPropagation();
-            editCategory(index);
-          };
-          div.appendChild(editButton);
-        }
-
-        div.onclick = () => {
-          selectedCategory = category.name;
-          render();
-          showScreen("detailScreen");
-        };
-
-        container.appendChild(div);
-      });
-    }
-
-    function renderItems() {
-      const category = getSelectedCategory();
-      const title = document.getElementById("selectedCategoryTitle");
-      const progress = document.getElementById("selectedProgress");
-      const container = document.getElementById("itemsList");
-
-      container.innerHTML = "";
-
-      if (!category) {
-        title.innerText = "Ingen kategori valgt";
-        progress.innerText = "";
-        return;
-      }
-
-      title.innerText = (category.icon || "") + " " + category.name;
-      progress.innerText = countDone(category) + " / " + getItemCount(category) + " færdige";
-
-      Object.values(category.items || {}).forEach((item, index) => {
-        const wrap = document.createElement("div");
-        wrap.className = "item-wrap";
-
-        const deleteBg = document.createElement("div");
-        deleteBg.className = "swipe-delete";
-        deleteBg.textContent = "Slet";
-
-        const div = document.createElement("div");
-        div.className = "item";
-        if (item.done) div.classList.add("done");
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = item.done;
-        checkbox.onchange = () => toggleItem(index);
-
-        const span = document.createElement("span");
-        span.textContent = item.name;
-
-        div.appendChild(checkbox);
-        div.appendChild(span);
-
-        if (editMode) {
-          const editButton = document.createElement("button");
-          editButton.className = "edit-btn";
-          editButton.textContent = "✏️";
-          editButton.onclick = () => editItem(index);
-          div.appendChild(editButton);
-        }
-
-        addSwipeAndLongPress(div, index);
-
-        wrap.appendChild(deleteBg);
-        wrap.appendChild(div);
-        container.appendChild(wrap);
-      });
-    }
-
-    function addSwipeAndLongPress(element, itemIndex) {
-      let startX = 0;
-      let currentX = 0;
-      let swiping = false;
-
-      element.addEventListener("pointerdown", event => {
-        startX = event.clientX;
-        swiping = true;
-
-        longPressTimer = setTimeout(() => {
-          if (editMode) editItem(itemIndex);
-        }, 650);
-      });
-
-      element.addEventListener("pointermove", event => {
-        if (!swiping) return;
-
-        currentX = event.clientX - startX;
-
-        if (currentX < 0) {
-          clearTimeout(longPressTimer);
-          element.style.transform = `translateX(${Math.max(currentX, -90)}px)`;
-        }
-      });
-
-      element.addEventListener("pointerup", () => {
-      clearTimeout(longPressTimer);
-    
-      const shouldDelete = currentX < -70;
-    
-      element.style.transform = "translateX(0)";
-    
-      startX = 0;
-      currentX = 0;
-      swiping = false;
-    
-      if (shouldDelete) {
-        setTimeout(() => {
-          deleteItem(itemIndex);
-        }, 50);
-      }
-    });
-
-      element.addEventListener("pointerleave", () => {
-        clearTimeout(longPressTimer);
-        element.style.transform = "translateX(0)";
-      });
-    }
-
-    function renderCategoryCheckboxes() {
-      const container = document.getElementById("categoryCheckboxes");
-      container.innerHTML = "";
-
-      data.categories.forEach(category => {
-        const label = document.createElement("label");
-        const checkbox = document.createElement("input");
-
-        checkbox.type = "checkbox";
-        checkbox.value = category.name;
-
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(" " + (category.icon || "") + " " + category.name));
-        container.appendChild(label);
-      });
-    }
-
-    window.toggleItem = function(index) {
-      const categoryIndex = data.categories.findIndex(c => c.name === selectedCategory);
-      const category = data.categories[categoryIndex];
-
-      category.items[index].done = !category.items[index].done;
-      render();
-
-      fastUpdate(`rejseliste/categories/${categoryIndex}/items/${index}`, {
-        done: category.items[index].done,
-        name: category.items[index].name
-      });
-    };
-
-    window.addItem = function() {
-      const input = document.getElementById("newItemInput");
-      const itemName = input.value.trim();
-
-      if (!itemName) {
-        alert("Skriv navnet på tingen først.");
-        return;
-      }
-
-      const selected = document.querySelectorAll("#categoryCheckboxes input:checked");
-
-      if (selected.length === 0) {
-        alert("Vælg mindst én kategori.");
-        return;
-      }
-
-      selected.forEach(checkbox => {
-        const categoryIndex = data.categories.findIndex(c => c.name === checkbox.value);
-        const category = data.categories[categoryIndex];
-
-        if (!category.items) category.items = [];
-
-        const alreadyExists = Object.values(category.items || {}).some(
-          item => item.name.toLowerCase() === itemName.toLowerCase()
-        );
-
-        if (!alreadyExists) {
-          category.items.push({ name: itemName, done: false });
-          fastSet(`rejseliste/categories/${categoryIndex}/items`, category.items);
-        }
-      });
-
-      input.value = "";
-      render();
-      alert("Tingen er tilføjet.");
-    };
-
-    window.addCategory = function() {
-      const emojiInput = document.getElementById("newCategoryEmojiInput");
-      const nameInput = document.getElementById("newCategoryInput");
-
-      const emoji = emojiInput.value.trim();
-      const name = nameInput.value.trim();
-
-      if (!name) {
-        alert("Skriv et kategorinavn.");
-        return;
-      }
-
-      const alreadyExists = data.categories.some(
-        category => category.name.toLowerCase() === name.toLowerCase()
-      );
-
-      if (alreadyExists) {
-        alert("Kategorien findes allerede.");
-        return;
-      }
-
-      data.categories.push({ name, icon: emoji, items: [] });
-      selectedCategory = name;
-
-      emojiInput.value = "";
-      nameInput.value = "";
-
-      render();
-      fastSet("rejseliste/categories", data.categories);
-    };
-
-    window.editCategory = function(index) {
-      const category = data.categories[index];
-
-      const newEmoji = prompt("Ret emoji. Du kan også lade feltet være tomt:", category.icon || "");
-      if (newEmoji === null) return;
-
-      const newName = prompt("Ret kategorinavn:", category.name);
-      if (newName === null) return;
-
-      const trimmedName = newName.trim();
-
-      if (!trimmedName) {
-        alert("Kategorien skal have et navn.");
-        return;
-      }
-
-      const nameExists = data.categories.some((cat, catIndex) =>
-        catIndex !== index && cat.name.toLowerCase() === trimmedName.toLowerCase()
-      );
-
-      if (nameExists) {
-        alert("Der findes allerede en kategori med det navn.");
-        return;
-      }
-
-      const oldName = category.name;
-
-      category.icon = newEmoji.trim();
-      category.name = trimmedName;
-
-      if (selectedCategory === oldName) selectedCategory = trimmedName;
-
-      render();
-      fastSet(`rejseliste/categories/${index}`, category);
-    };
-
-    window.editItem = function(index) {
-      const categoryIndex = data.categories.findIndex(c => c.name === selectedCategory);
-      const category = data.categories[categoryIndex];
-      const item = category.items[index];
-
-      const newName = prompt("Ret listeting:", item.name);
-      if (newName === null) return;
-
-      const trimmedName = newName.trim();
-
-      if (!trimmedName) {
-        alert("Listetingen skal have et navn.");
-        return;
-      }
-
-      item.name = trimmedName;
-
-      render();
-      fastSet(`rejseliste/categories/${categoryIndex}/items/${index}`, item);
-    };
-
-    window.deleteItem = function(index) {
-      const categoryIndex = data.categories.findIndex(c => c.name === selectedCategory);
-      const category = data.categories[categoryIndex];
-
-      if (!confirm("Vil du slette denne ting?")) {
-        render();
-        return;
-      }
-
-      category.items.splice(index, 1);
-
-      render();
-      fastSet(`rejseliste/categories/${categoryIndex}/items`, category.items);
-    };
-
-    window.deleteSelectedCategory = function() {
-      const category = getSelectedCategory();
-      if (!category) return;
-
-      if (!confirm("Vil du slette kategorien " + category.name + "?")) return;
-
-      data.categories = data.categories.filter(c => c.name !== category.name);
-      selectedCategory = data.categories.length > 0 ? data.categories[0].name : "";
-
-      render();
-      fastSet("rejseliste/categories", data.categories);
-      showScreen("listScreen");
-    };
-
-    window.startNewTrip = function() {
-      if (!confirm("Vil du nulstille alle krydser? Selve listen bliver gemt.")) return;
-
-      data.categories.forEach(category => {
-        Object.values(category.items || {}).forEach(item => {
-          item.done = false;
-        });
-      });
-
-      render();
-      fastSet("rejseliste/categories", data.categories);
-    };
-
-    window.toggleEditMode = function() {
-      editMode = !editMode;
-      render();
-
-      if (editMode) {
-        alert("Redigering er slået til. Tryk på ✏️ eller hold fingeren på teksten.");
-      }
-    };
-
-    window.showScreen = function(id) {
-      if (window.innerWidth > 800) return;
-
-      document.querySelectorAll(".screen").forEach(screen => {
-        screen.classList.remove("active");
-      });
-
-      document.getElementById(id).classList.add("active");
-    };
-
-    render();
-  </script>
+
+<header>Rejseliste</header>
+
+<main class="app">
+
+<section id="listScreen" class="panel screen active">
+
+<button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
+
+<div id="editBox1" class="edit-box">
+Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at slette.
+</div>
+
+<h2>Kategorier</h2>
+<div id="categoryList"></div>
+
+<h3>Tilføj kategori</h3>
+
+<input id="newCategoryEmojiInput" type="text" placeholder="Emoji, fx 🧳 (valgfri)">
+<input id="newCategoryInput" type="text" placeholder="Kategorinavn">
+
+<button class="save-button" onclick="addCategory()">Tilføj kategori</button>
+
+</section>
+
+<section id="detailScreen" class="panel screen active">
+
+<div id="editBox2" class="edit-box">
+Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at slette.
+</div>
+
+<h2 id="selectedCategoryTitle">Vælg en kategori</h2>
+
+<p id="selectedProgress"></p>
+
+<div id="itemsList"></div>
+
+<button class="small-button danger" onclick="deleteSelectedCategory()">Slet kategori</button>
+
+</section>
+
+<section id="addScreen" class="panel screen active">
+
+<h2>Tilføj ny ting</h2>
+
+<label>Navn på ting</label>
+<input id="newItemInput" type="text" placeholder="Fx Pas">
+
+<h3>Vælg kategorier</h3>
+<div id="categoryCheckboxes"></div>
+
+<button class="save-button" onclick="addItem()">Gem</button>
+
+</section>
+
+</main>
+
+<nav class="mobile-nav">
+
+<button onclick="showScreen('listScreen')">📋<br>Liste</button>
+<button onclick="showScreen('addScreen')">➕<br>Tilføj</button>
+<button onclick="toggleEditMode()">✏️<br>Rediger</button>
+<button onclick="startNewTrip()">↻<br>Ny rejse</button>
+
+</nav>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyDlKEP7_KezbNVEviM77GrvlH8u68vNwTQ",
+authDomain:"pakkeliste-a8089.firebaseapp.com",
+databaseURL:"https://pakkeliste-a8089-default-rtdb.europe-west1.firebasedatabase.app/",
+projectId:"pakkeliste-a8089",
+storageBucket:"pakkeliste-a8089.firebasestorage.app",
+messagingSenderId:"359809963583",
+appId:"1:359809963583:web:7a98e4e94bd2fd3fdb8a8a"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+
+const dataRef=ref(db,"rejseliste");
+
+let data={categories:[]};
+
+let selectedCategory="";
+let editMode=false;
+
+onValue(dataRef,(snapshot)=>{
+
+if(snapshot.exists()){
+
+data=snapshot.val();
+
+if(!selectedCategory && data.categories.length){
+selectedCategory=data.categories[0].name;
+}
+
+render();
+
+}
+
+});
+
+function save(){
+
+set(dataRef,data);
+
+}
+
+function getSelectedCategory(){
+
+return data.categories.find(c=>c.name===selectedCategory);
+
+}
+
+function countDone(category){
+
+if(!category.items)return 0;
+
+return Object.values(category.items).filter(item=>item.done).length;
+
+}
+
+function render(){
+
+renderCategories();
+renderItems();
+renderCategoryCheckboxes();
+
+document.getElementById("editBox1").classList.toggle("active",editMode);
+document.getElementById("editBox2").classList.toggle("active",editMode);
+
+}
+
+function renderCategories(){
+
+const container=document.getElementById("categoryList");
+
+container.innerHTML="";
+
+data.categories.forEach((category,index)=>{
+
+const done=countDone(category);
+const total=Object.keys(category.items||{}).length;
+
+const div=document.createElement("div");
+div.className="category";
+
+if(category.name===selectedCategory){
+div.classList.add("active");
+}
+
+div.onclick=function(){
+
+selectedCategory=category.name;
+render();
+showScreen("detailScreen");
+
+};
+
+div.innerHTML=`
+<div class="category-left">
+<span class="icon">${category.icon||""}</span>
+<span>${category.name}</span>
+</div>
+<span class="progress">${done} / ${total}</span>
+`;
+
+if(editMode){
+
+const editButton=document.createElement("button");
+editButton.className="edit-btn";
+editButton.textContent="✏️";
+editButton.onclick=(e)=>{
+
+e.stopPropagation();
+editCategory(index);
+
+};
+
+div.appendChild(editButton);
+
+const deleteButton=document.createElement("button");
+deleteButton.className="edit-btn";
+deleteButton.textContent="🗑️";
+deleteButton.onclick=(e)=>{
+
+e.stopPropagation();
+deleteCategory(index);
+
+};
+
+div.appendChild(deleteButton);
+
+}
+
+container.appendChild(div);
+
+});
+
+}
+
+function renderItems(){
+
+const category=getSelectedCategory();
+
+if(!category)return;
+
+document.getElementById("selectedCategoryTitle").innerText=
+(category.icon||"")+" "+category.name;
+
+document.getElementById("selectedProgress").innerText=
+countDone(category)+" / "+Object.keys(category.items||{}).length+" færdige";
+
+const container=document.getElementById("itemsList");
+
+container.innerHTML="";
+
+Object.values(category.items||{}).forEach((item,index)=>{
+
+const div=document.createElement("div");
+
+div.className="item";
+
+if(item.done){
+div.classList.add("done");
+}
+
+div.innerHTML=`
+<input type="checkbox" ${item.done?"checked":""}>
+<span>${item.name}</span>
+`;
+
+div.querySelector("input").onchange=function(){
+
+toggleItem(index);
+
+};
+
+if(editMode){
+
+const editButton=document.createElement("button");
+editButton.className="edit-btn";
+editButton.textContent="✏️";
+editButton.onclick=()=>editItem(index);
+
+div.appendChild(editButton);
+
+const deleteButton=document.createElement("button");
+deleteButton.className="edit-btn";
+deleteButton.textContent="🗑️";
+deleteButton.onclick=()=>deleteItem(index);
+
+div.appendChild(deleteButton);
+
+}
+
+container.appendChild(div);
+
+});
+
+}
+
+function renderCategoryCheckboxes(){
+
+const container=document.getElementById("categoryCheckboxes");
+
+container.innerHTML="";
+
+data.categories.forEach(category=>{
+
+const label=document.createElement("label");
+
+label.innerHTML=`
+<input type="checkbox" value="${category.name}">
+${category.icon||""} ${category.name}
+`;
+
+container.appendChild(label);
+
+});
+
+}
+
+window.toggleItem=function(index){
+
+const category=getSelectedCategory();
+
+category.items[index].done=!category.items[index].done;
+
+render();
+save();
+
+}
+
+window.addItem=function(){
+
+const input=document.getElementById("newItemInput");
+
+const name=input.value.trim();
+
+if(!name){
+alert("Skriv navnet på tingen først.");
+return;
+}
+
+const selected=document.querySelectorAll("#categoryCheckboxes input:checked");
+
+if(selected.length===0){
+alert("Vælg mindst én kategori.");
+return;
+}
+
+selected.forEach(box=>{
+
+const cat=data.categories.find(c=>c.name===box.value);
+
+if(!cat.items)cat.items=[];
+
+const exists=Object.values(cat.items).some(
+i=>i.name.toLowerCase()===name.toLowerCase()
+);
+
+if(!exists){
+
+cat.items.push({name:name,done:false});
+
+}
+
+});
+
+input.value="";
+
+render();
+save();
+
+}
+
+window.addCategory=function(){
+
+const emoji=document.getElementById("newCategoryEmojiInput").value.trim();
+const name=document.getElementById("newCategoryInput").value.trim();
+
+if(!name){
+alert("Skriv et kategorinavn.");
+return;
+}
+
+const exists=data.categories.some(
+c=>c.name.toLowerCase()===name.toLowerCase()
+);
+
+if(exists){
+alert("Kategorien findes allerede.");
+return;
+}
+
+data.categories.push({
+name:name,
+icon:emoji,
+items:[]
+});
+
+selectedCategory=name;
+
+document.getElementById("newCategoryEmojiInput").value="";
+document.getElementById("newCategoryInput").value="";
+
+render();
+save();
+
+}
+
+window.editCategory=function(index){
+
+const category=data.categories[index];
+
+const newName=prompt("Ret kategori:",category.name);
+
+if(newName===null)return;
+
+category.name=newName;
+
+render();
+save();
+
+}
+
+window.editItem=function(index){
+
+const category=getSelectedCategory();
+
+const item=category.items[index];
+
+const newName=prompt("Ret ting:",item.name);
+
+if(newName===null)return;
+
+item.name=newName;
+
+render();
+save();
+
+}
+
+window.deleteItem=function(index){
+
+if(!confirm("Vil du slette denne ting?"))return;
+
+const category=getSelectedCategory();
+
+category.items.splice(index,1);
+
+render();
+save();
+
+}
+
+window.deleteCategory=function(index){
+
+if(!confirm("Vil du slette denne kategori?"))return;
+
+data.categories.splice(index,1);
+
+selectedCategory=data.categories[0]?.name||"";
+
+render();
+save();
+
+}
+
+window.deleteSelectedCategory=function(){
+
+const category=getSelectedCategory();
+
+if(!category)return;
+
+if(!confirm("Vil du slette kategorien "+category.name+"?"))return;
+
+data.categories=data.categories.filter(c=>c.name!==category.name);
+
+selectedCategory=data.categories[0]?.name||"";
+
+render();
+save();
+
+}
+
+window.startNewTrip=function(){
+
+if(!confirm("Vil du nulstille alle krydser?"))return;
+
+data.categories.forEach(c=>{
+Object.values(c.items||{}).forEach(i=>{
+i.done=false;
+});
+});
+
+render();
+save();
+
+}
+
+window.toggleEditMode=function(){
+
+editMode=!editMode;
+
+render();
+
+}
+
+window.showScreen=function(id){
+
+if(window.innerWidth>800)return;
+
+document.querySelectorAll(".screen").forEach(s=>{
+s.classList.remove("active");
+});
+
+document.getElementById(id).classList.add("active");
+
+}
+
+render();
+
+</script>
+
 </body>
 </html>
