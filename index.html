@@ -117,6 +117,7 @@ gap:12px;
 padding:13px 0;
 border-bottom:1px solid #eee;
 font-size:17px;
+transition:0.15s ease;
 }
 
 .item span{flex:1;}
@@ -130,6 +131,18 @@ accent-color:#5b4acb;
 .item.done span{
 text-decoration:line-through;
 color:#999;
+}
+
+.item.dragging{
+opacity:0.45;
+background:#eeeaff;
+border-radius:12px;
+}
+
+.item.drag-over{
+background:#ddd8ff;
+border-radius:12px;
+transform:scale(1.02);
 }
 
 input[type="text"]{
@@ -242,7 +255,7 @@ body{padding-bottom:70px;}
 
 <select id="familySelect" class="family-select" onchange="changeFamily()">
 <option value="rykov">Familie Rykov</option>
-<option value="nielson">Familie Nielson</option>
+<option value="nielsen">Familie Nielsen</option>
 </select>
 </div>
 
@@ -349,7 +362,7 @@ categories:[
 ]}
 ]
 },
-nielson:{
+nielsen:{
 categories:[
 {name:"Mor",icon:"👩",items:[]},
 {name:"Far",icon:"👨",items:[]},
@@ -526,6 +539,54 @@ progress.innerText=countDone(category)+" / "+itemCount(category)+" færdige";
 Object.values(category.items || {}).forEach((item,index)=>{
 const div=document.createElement("div");
 div.className="item";
+
+div.draggable=true;
+div.dataset.index=index;
+
+div.addEventListener("dragstart",function(e){
+div.classList.add("dragging");
+e.dataTransfer.setData("text/plain",index);
+});
+
+div.addEventListener("dragend",function(){
+div.classList.remove("dragging");
+document.querySelectorAll(".item").forEach(itemElement=>{
+itemElement.classList.remove("drag-over");
+});
+});
+
+div.addEventListener("dragover",function(e){
+e.preventDefault();
+
+document.querySelectorAll(".item").forEach(itemElement=>{
+itemElement.classList.remove("drag-over");
+});
+
+div.classList.add("drag-over");
+});
+
+div.addEventListener("dragleave",function(){
+div.classList.remove("drag-over");
+});
+
+div.addEventListener("drop",function(e){
+e.preventDefault();
+
+div.classList.remove("drag-over");
+
+const fromIndex=parseInt(e.dataTransfer.getData("text/plain"));
+const toIndex=index;
+
+if(fromIndex===toIndex)return;
+
+const category=getSelectedCategory();
+
+const movedItem=category.items.splice(fromIndex,1)[0];
+category.items.splice(toIndex,0,movedItem);
+
+render();
+save();
+});
 
 if(item.done){
 div.classList.add("done");
