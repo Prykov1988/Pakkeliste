@@ -132,15 +132,6 @@ font-size:15px;
 
 label input{margin-right:8px;}
 
-.small-button{
-padding:8px 10px;
-border:none;
-border-radius:10px;
-background:#eee;
-cursor:pointer;
-margin-top:8px;
-}
-
 .danger{
 background:#ffdddd;
 color:#a40000;
@@ -159,6 +150,7 @@ height:38px;
 display:flex;
 align-items:center;
 justify-content:center;
+font-size:18px;
 }
 
 .edit-box{
@@ -247,10 +239,6 @@ Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at s
 <p id="selectedProgress"></p>
 
 <div id="itemsList"></div>
-
-<h3>Tilføj ting til denne kategori</h3>
-<input id="singleItemInput" type="text" placeholder="Fx Pas">
-<button class="save-button" onclick="addItemToCurrentCategory()">Tilføj</button>
 </section>
 
 <section id="addScreen" class="panel screen active">
@@ -414,6 +402,14 @@ const titleText=document.createElement("span");
 titleText.textContent=(category.icon||"")+" "+category.name;
 title.appendChild(titleText);
 
+const addButton=document.createElement("button");
+addButton.className="edit-btn";
+addButton.textContent="➕";
+addButton.onclick=function(){
+addItemToCurrentCategoryWithPrompt();
+};
+title.appendChild(addButton);
+
 if(editMode){
 const categoryIndex=getSelectedCategoryIndex();
 
@@ -550,15 +546,7 @@ render();
 save();
 };
 
-window.addItemToCurrentCategory=function(){
-const input=document.getElementById("singleItemInput");
-const name=input.value.trim();
-
-if(!name){
-alert("Skriv navnet på tingen først.");
-return;
-}
-
+function addItemToCurrentCategoryWithPrompt(){
 const category=getSelectedCategory();
 
 if(!category){
@@ -566,12 +554,20 @@ alert("Vælg en kategori først.");
 return;
 }
 
+const name=prompt("Tilføj ting til "+category.name+":");
+
+if(name===null)return;
+
+const trimmedName=name.trim();
+
+if(!trimmedName)return;
+
 if(!category.items){
 category.items=[];
 }
 
 const exists=Object.values(category.items).some(
-item=>item.name.toLowerCase()===name.toLowerCase()
+item=>item.name.toLowerCase()===trimmedName.toLowerCase()
 );
 
 if(exists){
@@ -580,15 +576,13 @@ return;
 }
 
 category.items.push({
-name:name,
+name:trimmedName,
 done:false
 });
 
-input.value="";
-
 render();
 save();
-};
+}
 
 window.addCategory=function(){
 const emoji=document.getElementById("newCategoryEmojiInput").value.trim();
