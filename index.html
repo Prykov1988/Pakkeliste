@@ -631,18 +631,22 @@
       });
 
       element.addEventListener("pointerup", () => {
-        clearTimeout(longPressTimer);
-
-        if (currentX < -70) {
+      clearTimeout(longPressTimer);
+    
+      const shouldDelete = currentX < -70;
+    
+      element.style.transform = "translateX(0)";
+    
+      startX = 0;
+      currentX = 0;
+      swiping = false;
+    
+      if (shouldDelete) {
+        setTimeout(() => {
           deleteItem(itemIndex);
-        } else {
-          element.style.transform = "translateX(0)";
-        }
-
-        startX = 0;
-        currentX = 0;
-        swiping = false;
-      });
+        }, 50);
+      }
+    });
 
       element.addEventListener("pointerleave", () => {
         clearTimeout(longPressTimer);
