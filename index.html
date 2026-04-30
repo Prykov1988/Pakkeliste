@@ -1,712 +1,419 @@
-<!DOCTYPE html>
-<html lang="da">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
-  <title>Rejseliste</title>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDlKEP7_KezbNVEviM77GrvlH8u68vNwTQ",
+    authDomain: "pakkeliste-a8089.firebaseapp.com",
+    databaseURL: "https://pakkeliste-a8089-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "pakkeliste-a8089",
+    storageBucket: "pakkeliste-a8089.firebasestorage.app",
+    messagingSenderId: "359809963583",
+    appId: "1:359809963583:web:7a98e4e94bd2fd3fdb8a8a"
+  };
 
-  <style>
-    * {
-      box-sizing: border-box;
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const dataRef = ref(db, "rejseliste");
+
+  let editMode = false;
+  let selectedCategory = "Mig";
+
+  const defaultData = {
+    categories: [
+      { name: "Mig", icon: "👤", items: [
+        { name: "Pas", done: false },
+        { name: "Undertøj", done: false },
+        { name: "Badetøj", done: false },
+        { name: "Oplader", done: false }
+      ]},
+      { name: "Min mand", icon: "👤", items: [
+        { name: "Pas", done: false },
+        { name: "Underbukser", done: false },
+        { name: "Strømper", done: false }
+      ]},
+      { name: "Vores dreng", icon: "👦", items: [
+        { name: "Pas", done: false },
+        { name: "Bleer", done: false },
+        { name: "Sutter", done: false },
+        { name: "Nattøj", done: false }
+      ]},
+      { name: "Vores pige", icon: "👧", items: [
+        { name: "Pas", done: false },
+        { name: "Tøj", done: false },
+        { name: "Sutter", done: false }
+      ]},
+      { name: "Svømmeredskaber", icon: "🏊", items: [
+        { name: "Håndklæde", done: false },
+        { name: "Badetøj", done: false },
+        { name: "Badevinger", done: false }
+      ]},
+      { name: "Udstyr", icon: "🧳", items: [
+        { name: "Opladere", done: false },
+        { name: "Klapvogn", done: false }
+      ]},
+      { name: "Pusle", icon: "🧸", items: [
+        { name: "Bleer", done: false },
+        { name: "Vådservietter", done: false }
+      ]},
+      { name: "Spisning", icon: "🍴", items: [
+        { name: "Hagesmæk", done: false },
+        { name: "Snacks", done: false }
+      ]},
+      { name: "Dokumenter", icon: "📄", items: [
+        { name: "Pas", done: false },
+        { name: "Billetter", done: false },
+        { name: "Forsikring", done: false }
+      ]},
+      { name: "Medicin", icon: "💊", items: [
+        { name: "Panodil", done: false },
+        { name: "Termometer", done: false }
+      ]}
+    ]
+  };
+
+  let data = defaultData;
+
+  onValue(dataRef, snapshot => {
+    if (snapshot.exists()) {
+      data = snapshot.val();
+    } else {
+      set(dataRef, defaultData);
+      data = defaultData;
     }
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f4fb;
-      color: #222;
-    }
-
-    header {
-      background: white;
-      padding: 18px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      border-bottom: 1px solid #ddd;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .app {
-      max-width: 1100px;
-      margin: auto;
-      display: grid;
-      grid-template-columns: 280px 1fr 320px;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .panel {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-    }
-
-    h2, h3 {
-      margin-top: 0;
-    }
-
-    .category {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px;
-      margin-bottom: 10px;
-      border-radius: 14px;
-      background: #f2f0fb;
-      cursor: pointer;
-    }
-
-    .category.active {
-      background: #ddd8ff;
-      font-weight: bold;
-    }
-
-    .category-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .icon {
-      font-size: 22px;
-      min-width: 24px;
-    }
-
-    .progress {
-      font-size: 13px;
-      color: #666;
-    }
-
-    .top-button,
-    .save-button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 14px;
-      background: #5b4acb;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 10px;
-      margin-bottom: 14px;
-      cursor: pointer;
-    }
-
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 0;
-      border-bottom: 1px solid #eee;
-      font-size: 17px;
-    }
-
-    .item input {
-      width: 22px;
-      height: 22px;
-    }
-
-    .item.done span {
-      text-decoration: line-through;
-      color: #999;
-    }
-
-    .edit-btn {
-      margin-left: auto;
-      border: none;
-      background: #eee;
-      border-radius: 10px;
-      padding: 7px 9px;
-      cursor: pointer;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 13px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      margin: 10px 0;
-      font-size: 15px;
-    }
-
-    label input {
-      margin-right: 8px;
-    }
-
-    .small-button {
-      padding: 8px 10px;
-      border: none;
-      border-radius: 10px;
-      background: #eee;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-
-    .danger {
-      background: #ffdddd;
-      color: #a40000;
-    }
-
-    .edit-mode-box {
-      background: #fff2c6;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 14px;
-      font-size: 14px;
-      display: none;
-    }
-
-    .edit-mode-box.active {
-      display: block;
-    }
-
-    .mobile-nav {
-      display: none;
-    }
-
-    @media (max-width: 800px) {
-      .app {
-        display: block;
-        padding: 14px;
-      }
-
-      .panel {
-        margin-bottom: 16px;
-        box-shadow: none;
-      }
-
-      .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        border-top: 1px solid #ddd;
-        justify-content: space-around;
-        padding: 10px 0;
-      }
-
-      .mobile-nav button {
-        background: none;
-        border: none;
-        font-size: 13px;
-        color: #333;
-      }
-
-      .screen {
-        display: none;
-      }
-
-      .screen.active {
-        display: block;
-      }
-
-      body {
-        padding-bottom: 80px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <header>Rejseliste</header>
-
-  <main class="app">
-    <section id="listScreen" class="panel screen active">
-      <button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
-
-      <div id="editBox1" class="edit-mode-box">
-        Redigering er slået til. Tryk på ✏️ for at ændre tekst eller emoji.
-      </div>
-
-      <h2>Kategorier</h2>
-      <div id="categoryList"></div>
-
-      <h3>Tilføj kategori</h3>
-      <input id="newCategoryEmojiInput" type="text" placeholder="Emoji, fx 🧳 (valgfri)" />
-      <input id="newCategoryInput" type="text" placeholder="Kategorinavn, fx Medicin" />
-      <button class="save-button" onclick="addCategory()">Tilføj kategori</button>
-    </section>
-
-    <section id="detailScreen" class="panel screen active">
-      <div id="editBox2" class="edit-mode-box">
-        Redigering er slået til. Tryk på ✏️ for at ændre listeting.
-      </div>
-
-      <h2 id="selectedCategoryTitle">Vælg en kategori</h2>
-      <p id="selectedProgress"></p>
-      <div id="itemsList"></div>
-
-      <button class="small-button danger" onclick="deleteSelectedCategory()">Slet kategori</button>
-    </section>
-
-    <section id="addScreen" class="panel screen active">
-      <h2>Tilføj ny ting</h2>
-
-      <label>Navn på ting</label>
-      <input id="newItemInput" type="text" placeholder="Fx Pas" />
-
-      <h3>Vælg kategorier</h3>
-      <div id="categoryCheckboxes"></div>
-
-      <button class="save-button" onclick="addItem()">Gem</button>
-    </section>
-  </main>
-
-  <nav class="mobile-nav">
-    <button onclick="showScreen('listScreen')">📋<br>Liste</button>
-    <button onclick="showScreen('addScreen')">➕<br>Tilføj</button>
-    <button onclick="toggleEditMode()">✏️<br>Rediger</button>
-    <button onclick="startNewTrip()">↻<br>Ny rejse</button>
-  </nav>
-
-  <script>
-    let editMode = false;
-
-    let data = JSON.parse(localStorage.getItem("rejseliste")) || {
-      selectedCategory: "Mig",
-      categories: [
-        {
-          name: "Mig",
-          icon: "👤",
-          items: [
-            { name: "Pas", done: false },
-            { name: "Undertøj", done: false },
-            { name: "Badetøj", done: false },
-            { name: "Oplader", done: false }
-          ]
-        },
-        {
-          name: "Min mand",
-          icon: "👤",
-          items: [
-            { name: "Pas", done: false },
-            { name: "Underbukser", done: false },
-            { name: "Strømper", done: false }
-          ]
-        },
-        {
-          name: "Vores dreng",
-          icon: "👦",
-          items: [
-            { name: "Pas", done: false },
-            { name: "Bleer", done: false },
-            { name: "Sutter", done: false },
-            { name: "Nattøj", done: false }
-          ]
-        },
-        {
-          name: "Vores pige",
-          icon: "👧",
-          items: [
-            { name: "Pas", done: false },
-            { name: "Tøj", done: false },
-            { name: "Sutter", done: false }
-          ]
-        },
-        {
-          name: "Svømmeredskaber",
-          icon: "🏊",
-          items: [
-            { name: "Håndklæde", done: false },
-            { name: "Badetøj", done: false },
-            { name: "Badevinger", done: false }
-          ]
-        },
-        {
-          name: "Udstyr",
-          icon: "🧳",
-          items: [
-            { name: "Opladere", done: false },
-            { name: "Klapvogn", done: false }
-          ]
-        },
-        {
-          name: "Pusle",
-          icon: "🧸",
-          items: [
-            { name: "Bleer", done: false },
-            { name: "Vådservietter", done: false }
-          ]
-        },
-        {
-          name: "Spisning",
-          icon: "🍴",
-          items: [
-            { name: "Hagesmæk", done: false },
-            { name: "Snacks", done: false }
-          ]
-        },
-        {
-          name: "Dokumenter",
-          icon: "📄",
-          items: [
-            { name: "Pas", done: false },
-            { name: "Billetter", done: false },
-            { name: "Forsikring", done: false }
-          ]
-        },
-        {
-          name: "Medicin",
-          icon: "💊",
-          items: [
-            { name: "Panodil", done: false },
-            { name: "Termometer", done: false }
-          ]
-        }
-      ]
-    };
-
-    function save() {
-      localStorage.setItem("rejseliste", JSON.stringify(data));
-    }
-
-    function getSelectedCategory() {
-      return data.categories.find(c => c.name === data.selectedCategory);
-    }
-
-    function countDone(category) {
-      return category.items.filter(item => item.done).length;
-    }
-
-    function render() {
-      renderCategories();
-      renderItems();
-      renderCategoryCheckboxes();
-      renderEditMode();
-      save();
-    }
-
-    function renderEditMode() {
-      document.getElementById("editBox1").classList.toggle("active", editMode);
-      document.getElementById("editBox2").classList.toggle("active", editMode);
-    }
-
-    function renderCategories() {
-      const container = document.getElementById("categoryList");
-      container.innerHTML = "";
-
-      data.categories.forEach((category, index) => {
-        const done = countDone(category);
-        const total = category.items.length;
-
-        const div = document.createElement("div");
-        div.className = "category";
-
-        if (category.name === data.selectedCategory) {
-          div.classList.add("active");
-        }
-
-        const left = document.createElement("div");
-        left.className = "category-left";
-
-        const icon = document.createElement("span");
-        icon.className = "icon";
-        icon.textContent = category.icon || "";
-
-        const name = document.createElement("span");
-        name.textContent = category.name;
-
-        left.appendChild(icon);
-        left.appendChild(name);
-
-        const progress = document.createElement("span");
-        progress.className = "progress";
-        progress.textContent = done + " / " + total;
-
-        div.appendChild(left);
-        div.appendChild(progress);
-
-        if (editMode) {
-          const editButton = document.createElement("button");
-          editButton.className = "edit-btn";
-          editButton.textContent = "✏️";
-          editButton.onclick = function(event) {
-            event.stopPropagation();
-            editCategory(index);
-          };
-          div.appendChild(editButton);
-        }
-
-        div.onclick = function () {
-          data.selectedCategory = category.name;
-          render();
-          showScreen("detailScreen");
-        };
-
-        container.appendChild(div);
-      });
-    }
-
-    function renderItems() {
-      const category = getSelectedCategory();
-
-      if (!category) return;
-
-      document.getElementById("selectedCategoryTitle").innerText =
-        (category.icon || "") + " " + category.name;
-
-      document.getElementById("selectedProgress").innerText =
-        countDone(category) + " / " + category.items.length + " færdige";
-
-      const container = document.getElementById("itemsList");
-      container.innerHTML = "";
-
-      category.items.forEach((item, index) => {
-        const div = document.createElement("div");
-        div.className = "item";
-
-        if (item.done) {
-          div.classList.add("done");
-        }
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = item.done;
-        checkbox.onchange = function () {
-          toggleItem(index);
-        };
-
-        const span = document.createElement("span");
-        span.textContent = item.name;
-
-        div.appendChild(checkbox);
-        div.appendChild(span);
-
-        if (editMode) {
-          const editButton = document.createElement("button");
-          editButton.className = "edit-btn";
-          editButton.textContent = "✏️";
-          editButton.onclick = function () {
-            editItem(index);
-          };
-          div.appendChild(editButton);
-        }
-
-        container.appendChild(div);
-      });
-    }
-
-    function renderCategoryCheckboxes() {
-      const container = document.getElementById("categoryCheckboxes");
-      container.innerHTML = "";
-
-      data.categories.forEach(category => {
-        const label = document.createElement("label");
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = category.name;
-
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(" " + (category.icon || "") + " " + category.name));
-
-        container.appendChild(label);
-      });
-    }
-
-    function toggleItem(index) {
-      const category = getSelectedCategory();
-      category.items[index].done = !category.items[index].done;
-      render();
-    }
-
-    function addItem() {
-      const input = document.getElementById("newItemInput");
-      const itemName = input.value.trim();
-
-      if (!itemName) {
-        alert("Skriv navnet på tingen først.");
-        return;
-      }
-
-      const selected = document.querySelectorAll("#categoryCheckboxes input:checked");
-
-      if (selected.length === 0) {
-        alert("Vælg mindst én kategori.");
-        return;
-      }
-
-      selected.forEach(checkbox => {
-        const category = data.categories.find(c => c.name === checkbox.value);
-
-        const alreadyExists = category.items.some(
-          item => item.name.toLowerCase() === itemName.toLowerCase()
-        );
-
-        if (!alreadyExists) {
-          category.items.push({
-            name: itemName,
-            done: false
-          });
-        }
-      });
-
-      input.value = "";
-
-      document.querySelectorAll("#categoryCheckboxes input").forEach(checkbox => {
-        checkbox.checked = false;
-      });
-
-      render();
-      alert("Tingen er tilføjet.");
-    }
-
-    function addCategory() {
-      const emojiInput = document.getElementById("newCategoryEmojiInput");
-      const nameInput = document.getElementById("newCategoryInput");
-
-      const emoji = emojiInput.value.trim();
-      const name = nameInput.value.trim();
-
-      if (!name) {
-        alert("Skriv et kategorinavn.");
-        return;
-      }
-
-      const alreadyExists = data.categories.some(
-        category => category.name.toLowerCase() === name.toLowerCase()
-      );
-
-      if (alreadyExists) {
-        alert("Kategorien findes allerede.");
-        return;
-      }
-
-      data.categories.push({
-        name: name,
-        icon: emoji,
-        items: []
-      });
-
-      emojiInput.value = "";
-      nameInput.value = "";
-
-      render();
-    }
-
-    function editCategory(index) {
-      const category = data.categories[index];
-
-      const newEmoji = prompt("Ret emoji. Du kan også lade feltet være tomt:", category.icon || "");
-      if (newEmoji === null) return;
-
-      const newName = prompt("Ret kategorinavn:", category.name);
-      if (newName === null) return;
-
-      const trimmedName = newName.trim();
-
-      if (!trimmedName) {
-        alert("Kategorien skal have et navn.");
-        return;
-      }
-
-      const nameExists = data.categories.some((cat, catIndex) =>
-        catIndex !== index && cat.name.toLowerCase() === trimmedName.toLowerCase()
-      );
-
-      if (nameExists) {
-        alert("Der findes allerede en kategori med det navn.");
-        return;
-      }
-
-      const oldName = category.name;
-
-      category.icon = newEmoji.trim();
-      category.name = trimmedName;
-
-      if (data.selectedCategory === oldName) {
-        data.selectedCategory = trimmedName;
-      }
-
-      render();
-    }
-
-    function editItem(index) {
-      const category = getSelectedCategory();
-      const item = category.items[index];
-
-      const newName = prompt("Ret listeting:", item.name);
-      if (newName === null) return;
-
-      const trimmedName = newName.trim();
-
-      if (!trimmedName) {
-        alert("Listetingen skal have et navn.");
-        return;
-      }
-
-      item.name = trimmedName;
-      render();
-    }
-
-    function deleteSelectedCategory() {
-      const category = getSelectedCategory();
-
-      if (!category) return;
-
-      if (!confirm("Vil du slette kategorien " + category.name + "?")) {
-        return;
-      }
-
-      data.categories = data.categories.filter(c => c.name !== category.name);
-
-      if (data.categories.length > 0) {
-        data.selectedCategory = data.categories[0].name;
-      } else {
-        data.selectedCategory = "";
-      }
-
-      render();
-      showScreen("listScreen");
-    }
-
-    function startNewTrip() {
-      if (!confirm("Vil du nulstille alle krydser? Selve listen bliver gemt.")) {
-        return;
-      }
-
-      data.categories.forEach(category => {
-        category.items.forEach(item => {
-          item.done = false;
-        });
-      });
-
-      render();
-    }
-
-    function toggleEditMode() {
-      editMode = !editMode;
-      render();
-
-      if (editMode) {
-        alert("Redigering er slået til. Tryk på ✏️ ved det du vil ændre.");
-      }
-    }
-
-    function showScreen(id) {
-      if (window.innerWidth > 800) return;
-
-      document.querySelectorAll(".screen").forEach(screen => {
-        screen.classList.remove("active");
-      });
-
-      document.getElementById(id).classList.add("active");
+    if (!getSelectedCategory() && data.categories.length > 0) {
+      selectedCategory = data.categories[0].name;
     }
 
     render();
-  </script>
-</body>
-</html>
+  });
+
+  function save() {
+    set(dataRef, data);
+  }
+
+  function getSelectedCategory() {
+    return data.categories.find(c => c.name === selectedCategory);
+  }
+
+  function countDone(category) {
+    return category.items.filter(item => item.done).length;
+  }
+
+  function render() {
+    renderCategories();
+    renderItems();
+    renderCategoryCheckboxes();
+    renderEditMode();
+  }
+
+  function renderEditMode() {
+    document.getElementById("editBox1").classList.toggle("active", editMode);
+    document.getElementById("editBox2").classList.toggle("active", editMode);
+  }
+
+  function renderCategories() {
+    const container = document.getElementById("categoryList");
+    container.innerHTML = "";
+
+    data.categories.forEach((category, index) => {
+      const done = countDone(category);
+      const total = category.items.length;
+
+      const div = document.createElement("div");
+      div.className = "category";
+
+      if (category.name === selectedCategory) {
+        div.classList.add("active");
+      }
+
+      const left = document.createElement("div");
+      left.className = "category-left";
+
+      const icon = document.createElement("span");
+      icon.className = "icon";
+      icon.textContent = category.icon || "";
+
+      const name = document.createElement("span");
+      name.textContent = category.name;
+
+      left.appendChild(icon);
+      left.appendChild(name);
+
+      const progress = document.createElement("span");
+      progress.className = "progress";
+      progress.textContent = done + " / " + total;
+
+      div.appendChild(left);
+      div.appendChild(progress);
+
+      if (editMode) {
+        const editButton = document.createElement("button");
+        editButton.className = "edit-btn";
+        editButton.textContent = "✏️";
+        editButton.onclick = function(event) {
+          event.stopPropagation();
+          editCategory(index);
+        };
+        div.appendChild(editButton);
+      }
+
+      div.onclick = function () {
+        selectedCategory = category.name;
+        render();
+        showScreen("detailScreen");
+      };
+
+      container.appendChild(div);
+    });
+  }
+
+  function renderItems() {
+    const category = getSelectedCategory();
+    const title = document.getElementById("selectedCategoryTitle");
+    const progress = document.getElementById("selectedProgress");
+    const container = document.getElementById("itemsList");
+
+    container.innerHTML = "";
+
+    if (!category) {
+      title.innerText = "Ingen kategori valgt";
+      progress.innerText = "";
+      return;
+    }
+
+    title.innerText = (category.icon || "") + " " + category.name;
+    progress.innerText = countDone(category) + " / " + category.items.length + " færdige";
+
+    category.items.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "item";
+
+      if (item.done) div.classList.add("done");
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = item.done;
+      checkbox.onchange = function () {
+        toggleItem(index);
+      };
+
+      const span = document.createElement("span");
+      span.textContent = item.name;
+
+      div.appendChild(checkbox);
+      div.appendChild(span);
+
+      if (editMode) {
+        const editButton = document.createElement("button");
+        editButton.className = "edit-btn";
+        editButton.textContent = "✏️";
+        editButton.onclick = function () {
+          editItem(index);
+        };
+        div.appendChild(editButton);
+      }
+
+      container.appendChild(div);
+    });
+  }
+
+  function renderCategoryCheckboxes() {
+    const container = document.getElementById("categoryCheckboxes");
+    container.innerHTML = "";
+
+    data.categories.forEach(category => {
+      const label = document.createElement("label");
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = category.name;
+
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(" " + (category.icon || "") + " " + category.name));
+      container.appendChild(label);
+    });
+  }
+
+  window.toggleItem = function(index) {
+    const category = getSelectedCategory();
+    category.items[index].done = !category.items[index].done;
+    save();
+  };
+
+  window.addItem = function() {
+    const input = document.getElementById("newItemInput");
+    const itemName = input.value.trim();
+
+    if (!itemName) {
+      alert("Skriv navnet på tingen først.");
+      return;
+    }
+
+    const selected = document.querySelectorAll("#categoryCheckboxes input:checked");
+
+    if (selected.length === 0) {
+      alert("Vælg mindst én kategori.");
+      return;
+    }
+
+    selected.forEach(checkbox => {
+      const category = data.categories.find(c => c.name === checkbox.value);
+
+      const alreadyExists = category.items.some(
+        item => item.name.toLowerCase() === itemName.toLowerCase()
+      );
+
+      if (!alreadyExists) {
+        category.items.push({
+          name: itemName,
+          done: false
+        });
+      }
+    });
+
+    input.value = "";
+    save();
+    alert("Tingen er tilføjet.");
+  };
+
+  window.addCategory = function() {
+    const emojiInput = document.getElementById("newCategoryEmojiInput");
+    const nameInput = document.getElementById("newCategoryInput");
+
+    const emoji = emojiInput.value.trim();
+    const name = nameInput.value.trim();
+
+    if (!name) {
+      alert("Skriv et kategorinavn.");
+      return;
+    }
+
+    const alreadyExists = data.categories.some(
+      category => category.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (alreadyExists) {
+      alert("Kategorien findes allerede.");
+      return;
+    }
+
+    data.categories.push({
+      name: name,
+      icon: emoji,
+      items: []
+    });
+
+    selectedCategory = name;
+    emojiInput.value = "";
+    nameInput.value = "";
+
+    save();
+  };
+
+  window.editCategory = function(index) {
+    const category = data.categories[index];
+
+    const newEmoji = prompt("Ret emoji. Du kan også lade feltet være tomt:", category.icon || "");
+    if (newEmoji === null) return;
+
+    const newName = prompt("Ret kategorinavn:", category.name);
+    if (newName === null) return;
+
+    const trimmedName = newName.trim();
+
+    if (!trimmedName) {
+      alert("Kategorien skal have et navn.");
+      return;
+    }
+
+    const nameExists = data.categories.some((cat, catIndex) =>
+      catIndex !== index && cat.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (nameExists) {
+      alert("Der findes allerede en kategori med det navn.");
+      return;
+    }
+
+    const oldName = category.name;
+
+    category.icon = newEmoji.trim();
+    category.name = trimmedName;
+
+    if (selectedCategory === oldName) {
+      selectedCategory = trimmedName;
+    }
+
+    save();
+  };
+
+  window.editItem = function(index) {
+    const category = getSelectedCategory();
+    const item = category.items[index];
+
+    const newName = prompt("Ret listeting:", item.name);
+    if (newName === null) return;
+
+    const trimmedName = newName.trim();
+
+    if (!trimmedName) {
+      alert("Listetingen skal have et navn.");
+      return;
+    }
+
+    item.name = trimmedName;
+    save();
+  };
+
+  window.deleteSelectedCategory = function() {
+    const category = getSelectedCategory();
+
+    if (!category) return;
+
+    if (!confirm("Vil du slette kategorien " + category.name + "?")) return;
+
+    data.categories = data.categories.filter(c => c.name !== category.name);
+
+    if (data.categories.length > 0) {
+      selectedCategory = data.categories[0].name;
+    } else {
+      selectedCategory = "";
+    }
+
+    save();
+    showScreen("listScreen");
+  };
+
+  window.startNewTrip = function() {
+    if (!confirm("Vil du nulstille alle krydser? Selve listen bliver gemt.")) return;
+
+    data.categories.forEach(category => {
+      category.items.forEach(item => {
+        item.done = false;
+      });
+    });
+
+    save();
+  };
+
+  window.toggleEditMode = function() {
+    editMode = !editMode;
+    render();
+
+    if (editMode) {
+      alert("Redigering er slået til. Tryk på ✏️ ved det du vil ændre.");
+    }
+  };
+
+  window.showScreen = function(id) {
+    if (window.innerWidth > 800) return;
+
+    document.querySelectorAll(".screen").forEach(screen => {
+      screen.classList.remove("active");
+    });
+
+    document.getElementById(id).classList.add("active");
+  };
+</script>
