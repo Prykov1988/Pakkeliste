@@ -48,6 +48,23 @@ padding:18px;
 box-shadow:0 4px 18px rgba(0,0,0,0.08);
 }
 
+.list-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+margin-bottom:14px;
+}
+
+.family-select{
+padding:10px;
+border-radius:12px;
+border:1px solid #ccc;
+font-size:14px;
+background:white;
+max-width:170px;
+}
+
 h2,h3{margin-top:0;}
 
 .category{
@@ -219,9 +236,18 @@ body{padding-bottom:70px;}
 <main class="app">
 
 <section id="listScreen" class="panel screen active">
+
+<div class="list-top">
+<h2>Kategorier</h2>
+
+<select id="familySelect" class="family-select" onchange="changeFamily()">
+<option value="rykov">Familie Rykov</option>
+<option value="nielsen">Familie Nielsen</option>
+</select>
+</div>
+
 <button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
 
-<h2>Kategorier</h2>
 <div id="categoryList"></div>
 
 <h3>Tilføj kategori</h3>
@@ -264,7 +290,7 @@ Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at s
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+import { getDatabase, ref, onValue, set, off } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
 const firebaseConfig={
 apiKey:"AIzaSyDlKEP7_KezbNVEviM77GrvlH8u68vNwTQ",
@@ -278,18 +304,81 @@ appId:"1:359809963583:web:7a98e4e94bd2fd3fdb8a8a"
 
 const app=initializeApp(firebaseConfig);
 const db=getDatabase(app);
-const dataRef=ref(db,"rejseliste");
+
+let currentFamily=localStorage.getItem("currentFamily") || "rykov";
+let dataRef=null;
 
 let data={categories:[]};
 let selectedCategory="";
 let editMode=false;
 let currentScreen="listScreen";
 
+const defaultFamilyData={
+rykov:{
+categories:[
+{name:"Pernille",icon:"👩",items:[
+{name:"Underbukser",done:false},
+{name:"BH’er",done:false},
+{name:"Sokker",done:false},
+{name:"Pas",done:false}
+]},
+{name:"Michael",icon:"👨",items:[
+{name:"Pas",done:false}
+]},
+{name:"Oliver",icon:"👦",items:[
+{name:"Pas",done:false},
+{name:"Tøj",done:false},
+{name:"Sutter",done:false},
+{name:"Nattøj",done:false},
+{name:"Legetøj",done:false}
+]},
+{name:"Emma",icon:"👧",items:[
+{name:"Pas",done:false},
+{name:"Tøj",done:false},
+{name:"Sutter",done:false},
+{name:"Nattøj",done:false}
+]},
+{name:"Svømmeredskaber",icon:"🏊",items:[
+{name:"Håndklæde",done:false},
+{name:"Badetøj",done:false},
+{name:"Badevinger",done:false}
+]},
+{name:"Udstyr",icon:"🧳",items:[
+{name:"Opladere",done:false},
+{name:"Klapvogn",done:false}
+]}
+]
+},
+nielsen:{
+categories:[
+{name:"Mor",icon:"👩",items:[]},
+{name:"Far",icon:"👨",items:[]},
+{name:"Barn",icon:"👧",items:[]},
+{name:"Dokumenter",icon:"📄",items:[
+{name:"Pas",done:false},
+{name:"Billetter",done:false}
+]}
+]
+}
+};
+
+function getFamilyPath(){
+return "families/"+currentFamily;
+}
+
+function startListening(){
+if(dataRef){
+off(dataRef);
+}
+
+dataRef=ref(db,getFamilyPath());
+
 onValue(dataRef,(snapshot)=>{
 if(snapshot.exists()){
 data=normalizeData(snapshot.val());
 }else{
-data={categories:[]};
+data=structuredClone(defaultFamilyData[currentFamily] || {categories:[]});
+set(dataRef,data);
 }
 
 if(!selectedCategory && data.categories.length){
@@ -302,6 +391,7 @@ selectedCategory=data.categories[0].name;
 
 render();
 });
+}
 
 function normalizeData(raw){
 if(!raw || !raw.categories)return {categories:[]};
@@ -340,6 +430,7 @@ return Object.keys(category.items || {}).length;
 }
 
 function render(){
+document.getElementById("familySelect").value=currentFamily;
 renderCategories();
 renderItems();
 renderCategoryCheckboxes();
@@ -498,6 +589,26 @@ editButton.style.display="none";
 editMode=false;
 }
 }
+
+window.changeFamily=function(){
+const select=document.getElementById("familySelect");
+
+currentFamily=select.value;
+localStorage.setItem("currentFamily",currentFamily);
+
+data={categories:[]};
+selectedCategory="";
+editMode=false;
+currentScreen="listScreen";
+
+document.querySelectorAll(".screen").forEach(s=>{
+s.classList.remove("active");
+});
+
+document.getElementById("listScreen").classList.add("active");
+
+startListening();
+};
 
 window.toggleItem=function(index){
 const category=getSelectedCategory();
@@ -745,9 +856,10 @@ updateEditButtonVisibility(id);
 render();
 };
 
+document.getElementById("familySelect").value=currentFamily;
 currentScreen="listScreen";
 updateEditButtonVisibility("listScreen");
-render();
+startListening();
 </script>
 
 </body>
