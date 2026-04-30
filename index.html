@@ -727,11 +727,16 @@ window.showScreen=function(id){
 
 if(window.innerWidth>800)return;
 
+/* slå rediger-mode fra når man skifter skærm */
+editMode=false;
+
 document.querySelectorAll(".screen").forEach(s=>{
 s.classList.remove("active");
 });
 
 document.getElementById(id).classList.add("active");
+
+render();
 
 }
 
