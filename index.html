@@ -11,10 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Rejseliste">
 
 <style>
-
-*{
-box-sizing:border-box;
-}
+*{box-sizing:border-box;}
 
 body{
 margin:0;
@@ -51,9 +48,7 @@ padding:18px;
 box-shadow:0 4px 18px rgba(0,0,0,0.08);
 }
 
-h2,h3{
-margin-top:0;
-}
+h2,h3{margin-top:0;}
 
 .category{
 display:flex;
@@ -77,16 +72,14 @@ align-items:center;
 gap:10px;
 }
 
-.icon{
-font-size:22px;
-}
+.icon{font-size:22px;}
 
 .progress{
 font-size:13px;
 color:#666;
 }
 
-.top-button{
+.top-button,.save-button{
 width:100%;
 padding:14px;
 border:none;
@@ -95,7 +88,8 @@ background:#5b4acb;
 color:white;
 font-size:16px;
 font-weight:bold;
-margin-bottom:16px;
+margin-top:14px;
+margin-bottom:14px;
 cursor:pointer;
 }
 
@@ -108,9 +102,7 @@ border-bottom:1px solid #eee;
 font-size:17px;
 }
 
-.item span{
-flex:1;
-}
+.item span{flex:1;}
 
 .item input{
 width:22px;
@@ -138,22 +130,7 @@ margin:10px 0;
 font-size:15px;
 }
 
-label input{
-margin-right:8px;
-}
-
-.save-button{
-width:100%;
-padding:14px;
-border:none;
-border-radius:14px;
-background:#5b4acb;
-color:white;
-font-size:16px;
-font-weight:bold;
-margin-top:14px;
-cursor:pointer;
-}
+label input{margin-right:8px;}
 
 .small-button{
 padding:8px 10px;
@@ -169,9 +146,7 @@ background:#ffdddd;
 color:#a40000;
 }
 
-.mobile-nav{
-display:none;
-}
+.mobile-nav{display:none;}
 
 .edit-btn{
 border:none;
@@ -195,12 +170,19 @@ font-size:14px;
 display:none;
 }
 
-.edit-box.active{
-display:block;
+.edit-box.active{display:block;}
+
+#selectedCategoryTitle{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+#selectedCategoryTitle span{
+flex:1;
 }
 
 @media(max-width:800px){
-
 .app{
 display:block;
 padding:14px;
@@ -230,20 +212,11 @@ font-size:13px;
 color:#333;
 }
 
-.screen{
-display:none;
-}
+.screen{display:none;}
+.screen.active{display:block;}
 
-.screen.active{
-display:block;
+body{padding-bottom:70px;}
 }
-
-body{
-padding-bottom:70px;
-}
-
-}
-
 </style>
 </head>
 
@@ -254,43 +227,33 @@ padding-bottom:70px;
 <main class="app">
 
 <section id="listScreen" class="panel screen active">
-
 <button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
-
-<div id="editBox1" class="edit-box">
-Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at slette.
-</div>
 
 <h2>Kategorier</h2>
 <div id="categoryList"></div>
 
 <h3>Tilføj kategori</h3>
-
 <input id="newCategoryEmojiInput" type="text" placeholder="Emoji, fx 🧳 (valgfri)">
 <input id="newCategoryInput" type="text" placeholder="Kategorinavn">
-
 <button class="save-button" onclick="addCategory()">Tilføj kategori</button>
-
 </section>
 
 <section id="detailScreen" class="panel screen active">
-
 <div id="editBox2" class="edit-box">
 Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at slette.
 </div>
 
 <h2 id="selectedCategoryTitle">Vælg en kategori</h2>
-
 <p id="selectedProgress"></p>
 
 <div id="itemsList"></div>
 
-<button class="small-button danger" onclick="deleteSelectedCategory()">Slet kategori</button>
-
+<h3>Tilføj ting til denne kategori</h3>
+<input id="singleItemInput" type="text" placeholder="Fx Pas">
+<button class="save-button" onclick="addItemToCurrentCategory()">Tilføj</button>
 </section>
 
 <section id="addScreen" class="panel screen active">
-
 <h2>Tilføj ny ting</h2>
 
 <label>Navn på ting</label>
@@ -300,22 +263,18 @@ Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at s
 <div id="categoryCheckboxes"></div>
 
 <button class="save-button" onclick="addItem()">Gem</button>
-
 </section>
 
 </main>
 
 <nav class="mobile-nav">
-
 <button onclick="showScreen('listScreen')">📋<br>Liste</button>
 <button onclick="showScreen('addScreen')">➕<br>Tilføj</button>
-<button onclick="toggleEditMode()">✏️<br>Rediger</button>
+<button id="editNavButton" onclick="toggleEditMode()">✏️<br>Rediger</button>
 <button onclick="startNewTrip()">↻<br>Ny rejse</button>
-
 </nav>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
@@ -331,71 +290,86 @@ appId:"1:359809963583:web:7a98e4e94bd2fd3fdb8a8a"
 
 const app=initializeApp(firebaseConfig);
 const db=getDatabase(app);
-
 const dataRef=ref(db,"rejseliste");
 
 let data={categories:[]};
-
 let selectedCategory="";
 let editMode=false;
+let currentScreen="listScreen";
 
 onValue(dataRef,(snapshot)=>{
-
 if(snapshot.exists()){
-
-data=snapshot.val();
+data=normalizeData(snapshot.val());
+}else{
+data={categories:[]};
+}
 
 if(!selectedCategory && data.categories.length){
 selectedCategory=data.categories[0].name;
 }
 
-render();
-
+if(!getSelectedCategory() && data.categories.length){
+selectedCategory=data.categories[0].name;
 }
 
+render();
 });
 
+function normalizeData(raw){
+if(!raw || !raw.categories)return {categories:[]};
+
+return {
+categories:Object.values(raw.categories).map(category=>({
+name:category.name || "Uden navn",
+icon:category.icon || "",
+items:Object.values(category.items || {}).map(item=>({
+name:item.name || "Uden navn",
+done:!!item.done
+}))
+}))
+};
+}
+
 function save(){
-
 set(dataRef,data);
-
 }
 
 function getSelectedCategory(){
-
 return data.categories.find(c=>c.name===selectedCategory);
+}
 
+function getSelectedCategoryIndex(){
+return data.categories.findIndex(c=>c.name===selectedCategory);
 }
 
 function countDone(category){
-
 if(!category.items)return 0;
-
 return Object.values(category.items).filter(item=>item.done).length;
+}
 
+function itemCount(category){
+return Object.keys(category.items || {}).length;
 }
 
 function render(){
-
 renderCategories();
 renderItems();
 renderCategoryCheckboxes();
+renderEditMode();
+updateEditButtonVisibility(currentScreen);
+}
 
-document.getElementById("editBox1").classList.toggle("active",editMode);
+function renderEditMode(){
 document.getElementById("editBox2").classList.toggle("active",editMode);
-
 }
 
 function renderCategories(){
-
 const container=document.getElementById("categoryList");
-
 container.innerHTML="";
 
 data.categories.forEach((category,index)=>{
-
 const done=countDone(category);
-const total=Object.keys(category.items||{}).length;
+const total=itemCount(category);
 
 const div=document.createElement("div");
 div.className="category";
@@ -405,11 +379,8 @@ div.classList.add("active");
 }
 
 div.onclick=function(){
-
 selectedCategory=category.name;
-render();
 showScreen("detailScreen");
-
 };
 
 div.innerHTML=`
@@ -420,60 +391,53 @@ div.innerHTML=`
 <span class="progress">${done} / ${total}</span>
 `;
 
+container.appendChild(div);
+});
+}
+
+function renderItems(){
+const category=getSelectedCategory();
+const title=document.getElementById("selectedCategoryTitle");
+const progress=document.getElementById("selectedProgress");
+const container=document.getElementById("itemsList");
+
+container.innerHTML="";
+title.innerHTML="";
+
+if(!category){
+title.innerText="Ingen kategori valgt";
+progress.innerText="";
+return;
+}
+
+const titleText=document.createElement("span");
+titleText.textContent=(category.icon||"")+" "+category.name;
+title.appendChild(titleText);
+
 if(editMode){
+const categoryIndex=getSelectedCategoryIndex();
 
 const editButton=document.createElement("button");
 editButton.className="edit-btn";
 editButton.textContent="✏️";
-editButton.onclick=(e)=>{
-
-e.stopPropagation();
-editCategory(index);
-
+editButton.onclick=function(){
+editCategory(categoryIndex);
 };
-
-div.appendChild(editButton);
+title.appendChild(editButton);
 
 const deleteButton=document.createElement("button");
 deleteButton.className="edit-btn";
 deleteButton.textContent="🗑️";
-deleteButton.onclick=(e)=>{
-
-e.stopPropagation();
-deleteCategory(index);
-
+deleteButton.onclick=function(){
+deleteCategory(categoryIndex);
 };
-
-div.appendChild(deleteButton);
-
+title.appendChild(deleteButton);
 }
 
-container.appendChild(div);
+progress.innerText=countDone(category)+" / "+itemCount(category)+" færdige";
 
-});
-
-}
-
-function renderItems(){
-
-const category=getSelectedCategory();
-
-if(!category)return;
-
-document.getElementById("selectedCategoryTitle").innerText=
-(category.icon||"")+" "+category.name;
-
-document.getElementById("selectedProgress").innerText=
-countDone(category)+" / "+Object.keys(category.items||{}).length+" færdige";
-
-const container=document.getElementById("itemsList");
-
-container.innerHTML="";
-
-Object.values(category.items||{}).forEach((item,index)=>{
-
+Object.values(category.items || {}).forEach((item,index)=>{
 const div=document.createElement("div");
-
 div.className="item";
 
 if(item.done){
@@ -486,43 +450,36 @@ div.innerHTML=`
 `;
 
 div.querySelector("input").onchange=function(){
-
 toggleItem(index);
-
 };
 
 if(editMode){
-
 const editButton=document.createElement("button");
 editButton.className="edit-btn";
 editButton.textContent="✏️";
-editButton.onclick=()=>editItem(index);
-
+editButton.onclick=function(){
+editItem(index);
+};
 div.appendChild(editButton);
 
 const deleteButton=document.createElement("button");
 deleteButton.className="edit-btn";
 deleteButton.textContent="🗑️";
-deleteButton.onclick=()=>deleteItem(index);
-
+deleteButton.onclick=function(){
+deleteItem(index);
+};
 div.appendChild(deleteButton);
-
 }
 
 container.appendChild(div);
-
 });
-
 }
 
 function renderCategoryCheckboxes(){
-
 const container=document.getElementById("categoryCheckboxes");
-
 container.innerHTML="";
 
 data.categories.forEach(category=>{
-
 const label=document.createElement("label");
 
 label.innerHTML=`
@@ -531,26 +488,33 @@ ${category.icon||""} ${category.name}
 `;
 
 container.appendChild(label);
-
 });
+}
 
+function updateEditButtonVisibility(activeScreenId){
+const editButton=document.getElementById("editNavButton");
+if(!editButton)return;
+
+if(activeScreenId==="detailScreen"){
+editButton.style.display="block";
+}else{
+editButton.style.display="none";
+editMode=false;
+}
 }
 
 window.toggleItem=function(index){
-
 const category=getSelectedCategory();
+if(!category)return;
 
 category.items[index].done=!category.items[index].done;
 
 render();
 save();
-
-}
+};
 
 window.addItem=function(){
-
 const input=document.getElementById("newItemInput");
-
 const name=input.value.trim();
 
 if(!name){
@@ -566,8 +530,8 @@ return;
 }
 
 selected.forEach(box=>{
-
 const cat=data.categories.find(c=>c.name===box.value);
+if(!cat)return;
 
 if(!cat.items)cat.items=[];
 
@@ -576,22 +540,57 @@ i=>i.name.toLowerCase()===name.toLowerCase()
 );
 
 if(!exists){
-
 cat.items.push({name:name,done:false});
-
 }
-
 });
 
 input.value="";
 
 render();
 save();
+};
 
+window.addItemToCurrentCategory=function(){
+const input=document.getElementById("singleItemInput");
+const name=input.value.trim();
+
+if(!name){
+alert("Skriv navnet på tingen først.");
+return;
 }
 
-window.addCategory=function(){
+const category=getSelectedCategory();
 
+if(!category){
+alert("Vælg en kategori først.");
+return;
+}
+
+if(!category.items){
+category.items=[];
+}
+
+const exists=Object.values(category.items).some(
+item=>item.name.toLowerCase()===name.toLowerCase()
+);
+
+if(exists){
+alert("Tingen findes allerede i denne kategori.");
+return;
+}
+
+category.items.push({
+name:name,
+done:false
+});
+
+input.value="";
+
+render();
+save();
+};
+
+window.addCategory=function(){
 const emoji=document.getElementById("newCategoryEmojiInput").value.trim();
 const name=document.getElementById("newCategoryInput").value.trim();
 
@@ -622,19 +621,16 @@ document.getElementById("newCategoryInput").value="";
 
 render();
 save();
-
-}
+};
 
 window.editCategory=function(index){
-
 const category=data.categories[index];
+if(!category)return;
 
 const newEmoji=prompt("Ret emoji. Du kan også lade feltet være tomt:",category.icon||"");
-
 if(newEmoji===null)return;
 
 const newName=prompt("Ret kategorinavn:",category.name);
-
 if(newName===null)return;
 
 const trimmedName=newName.trim();
@@ -664,71 +660,58 @@ selectedCategory=trimmedName;
 
 render();
 save();
-
-}
+};
 
 window.editItem=function(index){
-
 const category=getSelectedCategory();
+if(!category || !category.items[index])return;
 
 const item=category.items[index];
 
 const newName=prompt("Ret ting:",item.name);
-
 if(newName===null)return;
 
-item.name=newName;
+const trimmedName=newName.trim();
+
+if(!trimmedName){
+alert("Tingen skal have et navn.");
+return;
+}
+
+item.name=trimmedName;
 
 render();
 save();
-
-}
+};
 
 window.deleteItem=function(index){
-
 if(!confirm("Vil du slette denne ting?"))return;
 
 const category=getSelectedCategory();
+if(!category)return;
 
 category.items.splice(index,1);
 
 render();
 save();
-
-}
+};
 
 window.deleteCategory=function(index){
-
-if(!confirm("Vil du slette denne kategori?"))return;
-
-data.categories.splice(index,1);
-
-selectedCategory=data.categories[0]?.name||"";
-
-render();
-save();
-
-}
-
-window.deleteSelectedCategory=function(){
-
-const category=getSelectedCategory();
-
+const category=data.categories[index];
 if(!category)return;
 
 if(!confirm("Vil du slette kategorien "+category.name+"?"))return;
 
-data.categories=data.categories.filter(c=>c.name!==category.name);
-
+data.categories.splice(index,1);
 selectedCategory=data.categories[0]?.name||"";
+editMode=false;
 
 render();
 save();
-
-}
+showScreen("listScreen");
+};
 
 window.startNewTrip=function(){
-
 if(!confirm("Vil du nulstille alle krydser?"))return;
 
 data.categories.forEach(c=>{
@@ -737,25 +720,26 @@ i.done=false;
 });
 });
 
+editMode=false;
 render();
 save();
-
-}
+};
 
 window.toggleEditMode=function(){
+if(currentScreen!=="detailScreen")return;
 
 editMode=!editMode;
-
 render();
-
-}
+};
 
 window.showScreen=function(id){
-
 if(window.innerWidth>800)return;
 
-/* slå rediger-mode fra når man skifter skærm */
+currentScreen=id;
+
+if(id!=="detailScreen"){
 editMode=false;
+}
 
 document.querySelectorAll(".screen").forEach(s=>{
 s.classList.remove("active");
@@ -763,12 +747,13 @@ s.classList.remove("active");
 
 document.getElementById(id).classList.add("active");
 
+updateEditButtonVisibility(id);
 render();
+};
 
-}
-
+currentScreen="listScreen";
+updateEditButtonVisibility("listScreen");
 render();
-
 </script>
 
 </body>
