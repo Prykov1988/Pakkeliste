@@ -629,11 +629,38 @@ window.editCategory=function(index){
 
 const category=data.categories[index];
 
-const newName=prompt("Ret kategori:",category.name);
+const newEmoji=prompt("Ret emoji. Du kan også lade feltet være tomt:",category.icon||"");
+
+if(newEmoji===null)return;
+
+const newName=prompt("Ret kategorinavn:",category.name);
 
 if(newName===null)return;
 
-category.name=newName;
+const trimmedName=newName.trim();
+
+if(!trimmedName){
+alert("Kategorien skal have et navn.");
+return;
+}
+
+const exists=data.categories.some((c,i)=>
+i!==index && c.name.toLowerCase()===trimmedName.toLowerCase()
+);
+
+if(exists){
+alert("Der findes allerede en kategori med det navn.");
+return;
+}
+
+const oldName=category.name;
+
+category.icon=newEmoji.trim();
+category.name=trimmedName;
+
+if(selectedCategory===oldName){
+selectedCategory=trimmedName;
+}
 
 render();
 save();
