@@ -74,6 +74,7 @@
 
     .icon {
       font-size: 22px;
+      min-width: 24px;
     }
 
     .progress {
@@ -81,7 +82,8 @@
       color: #666;
     }
 
-    .top-button {
+    .top-button,
+    .save-button {
       width: 100%;
       padding: 14px;
       border: none;
@@ -90,7 +92,8 @@
       color: white;
       font-size: 16px;
       font-weight: bold;
-      margin-bottom: 16px;
+      margin-top: 10px;
+      margin-bottom: 14px;
       cursor: pointer;
     }
 
@@ -113,6 +116,15 @@
       color: #999;
     }
 
+    .edit-btn {
+      margin-left: auto;
+      border: none;
+      background: #eee;
+      border-radius: 10px;
+      padding: 7px 9px;
+      cursor: pointer;
+    }
+
     input[type="text"] {
       width: 100%;
       padding: 13px;
@@ -132,19 +144,6 @@
       margin-right: 8px;
     }
 
-    .save-button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 14px;
-      background: #5b4acb;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 14px;
-      cursor: pointer;
-    }
-
     .small-button {
       padding: 8px 10px;
       border: none;
@@ -159,22 +158,27 @@
       color: #a40000;
     }
 
+    .edit-mode-box {
+      background: #fff2c6;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .edit-mode-box.active {
+      display: block;
+    }
+
     .mobile-nav {
       display: none;
     }
 
     @media (max-width: 800px) {
-      body {
-        background: #f5f4fb;
-      }
-
       .app {
         display: block;
         padding: 14px;
-      }
-
-      .desktop-only {
-        display: none;
       }
 
       .panel {
@@ -210,7 +214,7 @@
       }
 
       body {
-        padding-bottom: 70px;
+        padding-bottom: 80px;
       }
     }
   </style>
@@ -223,15 +227,24 @@
     <section id="listScreen" class="panel screen active">
       <button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
 
+      <div id="editBox1" class="edit-mode-box">
+        Redigering er slået til. Tryk på ✏️ for at ændre tekst eller emoji.
+      </div>
+
       <h2>Kategorier</h2>
       <div id="categoryList"></div>
 
       <h3>Tilføj kategori</h3>
-      <input id="newCategoryInput" type="text" placeholder="Fx Medicin" />
+      <input id="newCategoryEmojiInput" type="text" placeholder="Emoji, fx 🧳 (valgfri)" />
+      <input id="newCategoryInput" type="text" placeholder="Kategorinavn, fx Medicin" />
       <button class="save-button" onclick="addCategory()">Tilføj kategori</button>
     </section>
 
     <section id="detailScreen" class="panel screen active">
+      <div id="editBox2" class="edit-mode-box">
+        Redigering er slået til. Tryk på ✏️ for at ændre listeting.
+      </div>
+
       <h2 id="selectedCategoryTitle">Vælg en kategori</h2>
       <p id="selectedProgress"></p>
       <div id="itemsList"></div>
@@ -255,10 +268,13 @@
   <nav class="mobile-nav">
     <button onclick="showScreen('listScreen')">📋<br>Liste</button>
     <button onclick="showScreen('addScreen')">➕<br>Tilføj</button>
+    <button onclick="toggleEditMode()">✏️<br>Rediger</button>
     <button onclick="startNewTrip()">↻<br>Ny rejse</button>
   </nav>
 
   <script>
+    let editMode = false;
+
     let data = JSON.parse(localStorage.getItem("rejseliste")) || {
       selectedCategory: "Mig",
       categories: [
@@ -369,14 +385,20 @@
       renderCategories();
       renderItems();
       renderCategoryCheckboxes();
+      renderEditMode();
       save();
+    }
+
+    function renderEditMode() {
+      document.getElementById("editBox1").classList.toggle("active", editMode);
+      document.getElementById("editBox2").classList.toggle("active", editMode);
     }
 
     function renderCategories() {
       const container = document.getElementById("categoryList");
       container.innerHTML = "";
 
-      data.categories.forEach(category => {
+      data.categories.forEach((category, index) => {
         const done = countDone(category);
         const total = category.items.length;
 
@@ -387,19 +409,42 @@
           div.classList.add("active");
         }
 
+        const left = document.createElement("div");
+        left.className = "category-left";
+
+        const icon = document.createElement("span");
+        icon.className = "icon";
+        icon.textContent = category.icon || "";
+
+        const name = document.createElement("span");
+        name.textContent = category.name;
+
+        left.appendChild(icon);
+        left.appendChild(name);
+
+        const progress = document.createElement("span");
+        progress.className = "progress";
+        progress.textContent = done + " / " + total;
+
+        div.appendChild(left);
+        div.appendChild(progress);
+
+        if (editMode) {
+          const editButton = document.createElement("button");
+          editButton.className = "edit-btn";
+          editButton.textContent = "✏️";
+          editButton.onclick = function(event) {
+            event.stopPropagation();
+            editCategory(index);
+          };
+          div.appendChild(editButton);
+        }
+
         div.onclick = function () {
           data.selectedCategory = category.name;
           render();
           showScreen("detailScreen");
         };
-
-        div.innerHTML = `
-          <div class="category-left">
-            <span class="icon">${category.icon}</span>
-            <span>${category.name}</span>
-          </div>
-          <span class="progress">${done} / ${total}</span>
-        `;
 
         container.appendChild(div);
       });
@@ -411,7 +456,7 @@
       if (!category) return;
 
       document.getElementById("selectedCategoryTitle").innerText =
-        category.icon + " " + category.name;
+        (category.icon || "") + " " + category.name;
 
       document.getElementById("selectedProgress").innerText =
         countDone(category) + " / " + category.items.length + " færdige";
@@ -427,10 +472,28 @@
           div.classList.add("done");
         }
 
-        div.innerHTML = `
-          <input type="checkbox" ${item.done ? "checked" : ""} onchange="toggleItem(${index})">
-          <span>${item.name}</span>
-        `;
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.done;
+        checkbox.onchange = function () {
+          toggleItem(index);
+        };
+
+        const span = document.createElement("span");
+        span.textContent = item.name;
+
+        div.appendChild(checkbox);
+        div.appendChild(span);
+
+        if (editMode) {
+          const editButton = document.createElement("button");
+          editButton.className = "edit-btn";
+          editButton.textContent = "✏️";
+          editButton.onclick = function () {
+            editItem(index);
+          };
+          div.appendChild(editButton);
+        }
 
         container.appendChild(div);
       });
@@ -443,10 +506,12 @@
       data.categories.forEach(category => {
         const label = document.createElement("label");
 
-        label.innerHTML = `
-          <input type="checkbox" value="${category.name}">
-          ${category.icon} ${category.name}
-        `;
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = category.name;
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + (category.icon || "") + " " + category.name));
 
         container.appendChild(label);
       });
@@ -500,8 +565,11 @@
     }
 
     function addCategory() {
-      const input = document.getElementById("newCategoryInput");
-      const name = input.value.trim();
+      const emojiInput = document.getElementById("newCategoryEmojiInput");
+      const nameInput = document.getElementById("newCategoryInput");
+
+      const emoji = emojiInput.value.trim();
+      const name = nameInput.value.trim();
 
       if (!name) {
         alert("Skriv et kategorinavn.");
@@ -519,11 +587,68 @@
 
       data.categories.push({
         name: name,
-        icon: "📦",
+        icon: emoji,
         items: []
       });
 
-      input.value = "";
+      emojiInput.value = "";
+      nameInput.value = "";
+
+      render();
+    }
+
+    function editCategory(index) {
+      const category = data.categories[index];
+
+      const newEmoji = prompt("Ret emoji. Du kan også lade feltet være tomt:", category.icon || "");
+      if (newEmoji === null) return;
+
+      const newName = prompt("Ret kategorinavn:", category.name);
+      if (newName === null) return;
+
+      const trimmedName = newName.trim();
+
+      if (!trimmedName) {
+        alert("Kategorien skal have et navn.");
+        return;
+      }
+
+      const nameExists = data.categories.some((cat, catIndex) =>
+        catIndex !== index && cat.name.toLowerCase() === trimmedName.toLowerCase()
+      );
+
+      if (nameExists) {
+        alert("Der findes allerede en kategori med det navn.");
+        return;
+      }
+
+      const oldName = category.name;
+
+      category.icon = newEmoji.trim();
+      category.name = trimmedName;
+
+      if (data.selectedCategory === oldName) {
+        data.selectedCategory = trimmedName;
+      }
+
+      render();
+    }
+
+    function editItem(index) {
+      const category = getSelectedCategory();
+      const item = category.items[index];
+
+      const newName = prompt("Ret listeting:", item.name);
+      if (newName === null) return;
+
+      const trimmedName = newName.trim();
+
+      if (!trimmedName) {
+        alert("Listetingen skal have et navn.");
+        return;
+      }
+
+      item.name = trimmedName;
       render();
     }
 
@@ -560,6 +685,15 @@
       });
 
       render();
+    }
+
+    function toggleEditMode() {
+      editMode = !editMode;
+      render();
+
+      if (editMode) {
+        alert("Redigering er slået til. Tryk på ✏️ ved det du vil ændre.");
+      }
     }
 
     function showScreen(id) {
