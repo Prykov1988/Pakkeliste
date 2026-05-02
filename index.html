@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Rejseliste</title>
 
 <meta name="theme-color" content="#5b4acb">
@@ -110,6 +109,36 @@ margin-bottom:14px;
 cursor:pointer;
 }
 
+.section{
+margin-top:22px;
+padding-top:8px;
+border-top:2px solid #eee;
+}
+
+.section-header{
+display:flex;
+align-items:center;
+gap:8px;
+margin-bottom:8px;
+}
+
+.section-title{
+font-size:22px;
+font-weight:bold;
+flex:1;
+}
+
+.section-drop{
+min-height:20px;
+border-radius:14px;
+padding-bottom:6px;
+}
+
+.section-drop.drag-over{
+background:#eeeaff;
+outline:2px dashed #5b4acb;
+}
+
 .item{
 display:flex;
 align-items:center;
@@ -161,11 +190,6 @@ font-size:15px;
 }
 
 label input{margin-right:8px;}
-
-.danger{
-background:#ffdddd;
-color:#a40000;
-}
 
 .mobile-nav{display:none;}
 
@@ -271,13 +295,15 @@ body{padding-bottom:70px;}
 
 <section id="detailScreen" class="panel screen active">
 <div id="editBox2" class="edit-box">
-Redigering er slået til. Tryk på ✏️ for at redigere eller 🗑️ for at slette.
+Redigering er slået til. Brug ✏️ for at redigere og 🗑️ for at slette.
 </div>
 
 <h2 id="selectedCategoryTitle">Vælg en kategori</h2>
 <p id="selectedProgress"></p>
 
-<div id="itemsList"></div>
+<button class="top-button" onclick="addSectionToCurrentCategory()">➕ Tilføj underkategori</button>
+
+<div id="sectionsList"></div>
 </section>
 
 <section id="addScreen" class="panel screen active">
@@ -329,48 +355,74 @@ let currentScreen="listScreen";
 const defaultFamilyData={
 rykov:{
 categories:[
-{name:"Pernille",icon:"👩",items:[
+{
+name:"Pernille",
+icon:"👩",
+sections:[
+{name:"Tøj",items:[
 {name:"Underbukser",done:false},
 {name:"BH’er",done:false},
+{name:"Sokker",done:false}
+]},
+{name:"Dokumenter",items:[
+{name:"Pas",done:false}
+]}
+]
+},
+{
+name:"Michael",
+icon:"👨",
+sections:[
+{name:"Tøj",items:[
+{name:"Underbukser",done:false},
+{name:"Strømper",done:false}
+]},
+{name:"Dokumenter",items:[
+{name:"Pas",done:false}
+]}
+]
+},
+{
+name:"Oliver",
+icon:"👦",
+sections:[
+{name:"Tøj",items:[
+{name:"Underbukser",done:false},
+{name:"Undertrøjer",done:false},
 {name:"Sokker",done:false},
-{name:"Pas",done:false}
+{name:"Bukser",done:false},
+{name:"Trøje",done:false},
+{name:"T-shirt",done:false}
 ]},
-{name:"Michael",icon:"👨",items:[
-{name:"Pas",done:false}
+{name:"Overtøj",items:[
+{name:"Hue - kold",done:false},
+{name:"Jakke",done:false}
 ]},
-{name:"Oliver",icon:"👦",items:[
-{name:"Pas",done:false},
+{name:"Toiletsager",items:[
+{name:"Tandbørste",done:false}
+]}
+]
+},
+{
+name:"Emma",
+icon:"👧",
+sections:[
+{name:"Tøj",items:[
 {name:"Tøj",done:false},
-{name:"Sutter",done:false},
-{name:"Nattøj",done:false},
-{name:"Legetøj",done:false}
-]},
-{name:"Emma",icon:"👧",items:[
-{name:"Pas",done:false},
-{name:"Tøj",done:false},
-{name:"Sutter",done:false},
 {name:"Nattøj",done:false}
 ]},
-{name:"Svømmeredskaber",icon:"🏊",items:[
-{name:"Håndklæde",done:false},
-{name:"Badetøj",done:false},
-{name:"Badevinger",done:false}
-]},
-{name:"Udstyr",icon:"🧳",items:[
-{name:"Opladere",done:false},
-{name:"Klapvogn",done:false}
+{name:"Dokumenter",items:[
+{name:"Pas",done:false}
 ]}
+]
+}
 ]
 },
 nielsen:{
 categories:[
-{name:"Mor",icon:"👩",items:[]},
-{name:"Far",icon:"👨",items:[]},
-{name:"Barn",icon:"👧",items:[]},
-{name:"Dokumenter",icon:"📄",items:[
-{name:"Pas",done:false},
-{name:"Billetter",done:false}
-]}
+{name:"Mor",icon:"👩",sections:[{name:"Diverse",items:[]}]},
+{name:"Far",icon:"👨",sections:[{name:"Diverse",items:[]}]},
+{name:"Barn",icon:"👧",sections:[{name:"Diverse",items:[]}]}
 ]
 }
 };
@@ -410,14 +462,35 @@ function normalizeData(raw){
 if(!raw || !raw.categories)return {categories:[]};
 
 return {
-categories:Object.values(raw.categories).map(category=>({
-name:category.name || "Uden navn",
-icon:category.icon || "",
+categories:Object.values(raw.categories).map(category=>{
+let sections=[];
+
+if(category.sections){
+sections=Object.values(category.sections).map(section=>({
+name:section.name || "Diverse",
+items:Object.values(section.items || {}).map(item=>({
+name:item.name || "Uden navn",
+done:!!item.done
+}))
+}));
+}else if(category.items){
+sections=[{
+name:"Diverse",
 items:Object.values(category.items || {}).map(item=>({
 name:item.name || "Uden navn",
 done:!!item.done
 }))
-}))
+}];
+}else{
+sections=[{name:"Diverse",items:[]}];
+}
+
+return {
+name:category.name || "Uden navn",
+icon:category.icon || "",
+sections:sections
+};
+})
 };
 }
 
@@ -434,12 +507,21 @@ return data.categories.findIndex(c=>c.name===selectedCategory);
 }
 
 function countDone(category){
-if(!category.items)return 0;
-return Object.values(category.items).filter(item=>item.done).length;
+let count=0;
+category.sections.forEach(section=>{
+section.items.forEach(item=>{
+if(item.done)count++;
+});
+});
+return count;
 }
 
 function itemCount(category){
-return Object.keys(category.items || {}).length;
+let count=0;
+category.sections.forEach(section=>{
+count+=section.items.length;
+});
+return count;
 }
 
 function render(){
@@ -459,7 +541,7 @@ function renderCategories(){
 const container=document.getElementById("categoryList");
 container.innerHTML="";
 
-data.categories.forEach((category,index)=>{
+data.categories.forEach(category=>{
 const done=countDone(category);
 const total=itemCount(category);
 
@@ -491,7 +573,7 @@ function renderItems(){
 const category=getSelectedCategory();
 const title=document.getElementById("selectedCategoryTitle");
 const progress=document.getElementById("selectedProgress");
-const container=document.getElementById("itemsList");
+const container=document.getElementById("sectionsList");
 
 container.innerHTML="";
 title.innerHTML="";
@@ -505,14 +587,6 @@ return;
 const titleText=document.createElement("span");
 titleText.textContent=(category.icon||"")+" "+category.name;
 title.appendChild(titleText);
-
-const addButton=document.createElement("button");
-addButton.className="edit-btn";
-addButton.textContent="➕";
-addButton.onclick=function(){
-addItemToCurrentCategoryWithPrompt();
-};
-title.appendChild(addButton);
 
 if(editMode){
 const categoryIndex=getSelectedCategoryIndex();
@@ -536,22 +610,88 @@ title.appendChild(deleteButton);
 
 progress.innerText=countDone(category)+" / "+itemCount(category)+" færdige";
 
-Object.values(category.items || {}).forEach((item,index)=>{
+category.sections.forEach((section,sectionIndex)=>{
+const sectionDiv=document.createElement("div");
+sectionDiv.className="section";
+
+const header=document.createElement("div");
+header.className="section-header";
+
+const sectionTitle=document.createElement("div");
+sectionTitle.className="section-title";
+sectionTitle.textContent=section.name;
+
+header.appendChild(sectionTitle);
+
+const addButton=document.createElement("button");
+addButton.className="edit-btn";
+addButton.textContent="➕";
+addButton.onclick=function(){
+addItemToSection(sectionIndex);
+};
+header.appendChild(addButton);
+
+if(editMode){
+const editSectionButton=document.createElement("button");
+editSectionButton.className="edit-btn";
+editSectionButton.textContent="✏️";
+editSectionButton.onclick=function(){
+editSection(sectionIndex);
+};
+header.appendChild(editSectionButton);
+
+const deleteSectionButton=document.createElement("button");
+deleteSectionButton.className="edit-btn";
+deleteSectionButton.textContent="🗑️";
+deleteSectionButton.onclick=function(){
+deleteSection(sectionIndex);
+};
+header.appendChild(deleteSectionButton);
+}
+
+sectionDiv.appendChild(header);
+
+const dropArea=document.createElement("div");
+dropArea.className="section-drop";
+
+dropArea.addEventListener("dragover",function(e){
+e.preventDefault();
+dropArea.classList.add("drag-over");
+});
+
+dropArea.addEventListener("dragleave",function(){
+dropArea.classList.remove("drag-over");
+});
+
+dropArea.addEventListener("drop",function(e){
+e.preventDefault();
+dropArea.classList.remove("drag-over");
+
+const dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,section.items.length);
+});
+
+section.items.forEach((item,itemIndex)=>{
 const div=document.createElement("div");
 div.className="item";
 
 div.draggable=true;
-div.dataset.index=index;
 
 div.addEventListener("dragstart",function(e){
 div.classList.add("dragging");
-e.dataTransfer.setData("text/plain",index);
+e.dataTransfer.setData("text/plain",JSON.stringify({
+sectionIndex:sectionIndex,
+itemIndex:itemIndex
+}));
 });
 
 div.addEventListener("dragend",function(){
 div.classList.remove("dragging");
 document.querySelectorAll(".item").forEach(itemElement=>{
 itemElement.classList.remove("drag-over");
+});
+document.querySelectorAll(".section-drop").forEach(area=>{
+area.classList.remove("drag-over");
 });
 });
 
@@ -571,21 +711,10 @@ div.classList.remove("drag-over");
 
 div.addEventListener("drop",function(e){
 e.preventDefault();
-
 div.classList.remove("drag-over");
 
-const fromIndex=parseInt(e.dataTransfer.getData("text/plain"));
-const toIndex=index;
-
-if(fromIndex===toIndex)return;
-
-const category=getSelectedCategory();
-
-const movedItem=category.items.splice(fromIndex,1)[0];
-category.items.splice(toIndex,0,movedItem);
-
-render();
-save();
+const dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,itemIndex);
 });
 
 if(item.done){
@@ -598,7 +727,7 @@ div.innerHTML=`
 `;
 
 div.querySelector("input").onchange=function(){
-toggleItem(index);
+toggleItem(sectionIndex,itemIndex);
 };
 
 if(editMode){
@@ -606,7 +735,7 @@ const editButton=document.createElement("button");
 editButton.className="edit-btn";
 editButton.textContent="✏️";
 editButton.onclick=function(){
-editItem(index);
+editItem(sectionIndex,itemIndex);
 };
 div.appendChild(editButton);
 
@@ -614,13 +743,40 @@ const deleteButton=document.createElement("button");
 deleteButton.className="edit-btn";
 deleteButton.textContent="🗑️";
 deleteButton.onclick=function(){
-deleteItem(index);
+deleteItem(sectionIndex,itemIndex);
 };
 div.appendChild(deleteButton);
 }
 
-container.appendChild(div);
+dropArea.appendChild(div);
 });
+
+sectionDiv.appendChild(dropArea);
+container.appendChild(sectionDiv);
+});
+}
+
+function moveItem(fromSectionIndex,fromItemIndex,toSectionIndex,toItemIndex){
+const category=getSelectedCategory();
+if(!category)return;
+
+const fromSection=category.sections[fromSectionIndex];
+const toSection=category.sections[toSectionIndex];
+
+if(!fromSection || !toSection)return;
+
+const movedItem=fromSection.items.splice(fromItemIndex,1)[0];
+
+if(!movedItem)return;
+
+if(fromSectionIndex===toSectionIndex && fromItemIndex<toItemIndex){
+toItemIndex--;
+}
+
+toSection.items.splice(toItemIndex,0,movedItem);
+
+render();
+save();
 }
 
 function renderCategoryCheckboxes(){
@@ -671,11 +827,12 @@ document.getElementById("listScreen").classList.add("active");
 startListening();
 };
 
-window.toggleItem=function(index){
+window.toggleItem=function(sectionIndex,itemIndex){
 const category=getSelectedCategory();
 if(!category)return;
 
-category.items[index].done=!category.items[index].done;
+category.sections[sectionIndex].items[itemIndex].done=
+!category.sections[sectionIndex].items[itemIndex].done;
 
 render();
 save();
@@ -701,14 +858,18 @@ selected.forEach(box=>{
 const cat=data.categories.find(c=>c.name===box.value);
 if(!cat)return;
 
-if(!cat.items)cat.items=[];
+if(!cat.sections || cat.sections.length===0){
+cat.sections=[{name:"Diverse",items:[]}];
+}
 
-const exists=Object.values(cat.items).some(
+const section=cat.sections[0];
+
+const exists=section.items.some(
 i=>i.name.toLowerCase()===name.toLowerCase()
 );
 
 if(!exists){
-cat.items.push({name:name,done:false});
+section.items.push({name:name,done:false});
 }
 });
 
@@ -718,15 +879,14 @@ render();
 save();
 };
 
-function addItemToCurrentCategoryWithPrompt(){
+function addItemToSection(sectionIndex){
 const category=getSelectedCategory();
+if(!category)return;
 
-if(!category){
-alert("Vælg en kategori først.");
-return;
-}
+const section=category.sections[sectionIndex];
+if(!section)return;
 
-const name=prompt("Tilføj ting til "+category.name+":");
+const name=prompt("Tilføj ting til "+section.name+":");
 
 if(name===null)return;
 
@@ -734,20 +894,16 @@ const trimmedName=name.trim();
 
 if(!trimmedName)return;
 
-if(!category.items){
-category.items=[];
-}
-
-const exists=Object.values(category.items).some(
+const exists=section.items.some(
 item=>item.name.toLowerCase()===trimmedName.toLowerCase()
 );
 
 if(exists){
-alert("Tingen findes allerede i denne kategori.");
+alert("Tingen findes allerede i denne underkategori.");
 return;
 }
 
-category.items.push({
+section.items.push({
 name:trimmedName,
 done:false
 });
@@ -777,13 +933,45 @@ return;
 data.categories.push({
 name:name,
 icon:emoji,
-items:[]
+sections:[
+{name:"Diverse",items:[]}
+]
 });
 
 selectedCategory=name;
 
 document.getElementById("newCategoryEmojiInput").value="";
 document.getElementById("newCategoryInput").value="";
+
+render();
+save();
+};
+
+window.addSectionToCurrentCategory=function(){
+const category=getSelectedCategory();
+if(!category)return;
+
+const name=prompt("Navn på ny underkategori:");
+
+if(name===null)return;
+
+const trimmedName=name.trim();
+
+if(!trimmedName)return;
+
+const exists=category.sections.some(
+section=>section.name.toLowerCase()===trimmedName.toLowerCase()
+);
+
+if(exists){
+alert("Underkategorien findes allerede.");
+return;
+}
+
+category.sections.push({
+name:trimmedName,
+items:[]
+});
 
 render();
 save();
@@ -828,11 +1016,43 @@ render();
 save();
 };
 
-window.editItem=function(index){
+window.editSection=function(sectionIndex){
 const category=getSelectedCategory();
-if(!category || !category.items[index])return;
+if(!category)return;
 
-const item=category.items[index];
+const section=category.sections[sectionIndex];
+
+const newName=prompt("Ret underkategori:",section.name);
+
+if(newName===null)return;
+
+const trimmedName=newName.trim();
+
+if(!trimmedName){
+alert("Underkategorien skal have et navn.");
+return;
+}
+
+const exists=category.sections.some((s,i)=>
+i!==sectionIndex && s.name.toLowerCase()===trimmedName.toLowerCase()
+);
+
+if(exists){
+alert("Der findes allerede en underkategori med det navn.");
+return;
+}
+
+section.name=trimmedName;
+
+render();
+save();
+};
+
+window.editItem=function(sectionIndex,itemIndex){
+const category=getSelectedCategory();
+if(!category)return;
+
+const item=category.sections[sectionIndex].items[itemIndex];
 
 const newName=prompt("Ret ting:",item.name);
 if(newName===null)return;
@@ -850,13 +1070,35 @@ render();
 save();
 };
 
-window.deleteItem=function(index){
+window.deleteItem=function(sectionIndex,itemIndex){
 if(!confirm("Vil du slette denne ting?"))return;
 
 const category=getSelectedCategory();
 if(!category)return;
 
-category.items.splice(index,1);
+category.sections[sectionIndex].items.splice(itemIndex,1);
+
+render();
+save();
+};
+
+window.deleteSection=function(sectionIndex){
+const category=getSelectedCategory();
+if(!category)return;
+
+const section=category.sections[sectionIndex];
+
+if(section.items.length>0){
+if(!confirm("Underkategorien indeholder ting. Vil du slette den alligevel?"))return;
+}else{
+if(!confirm("Vil du slette underkategorien "+section.name+"?"))return;
+}
+
+category.sections.splice(sectionIndex,1);
+
+if(category.sections.length===0){
+category.sections.push({name:"Diverse",items:[]});
+}
 
 render();
 save();
@@ -880,9 +1122,11 @@ showScreen("listScreen");
 window.startNewTrip=function(){
 if(!confirm("Vil du nulstille alle krydser?"))return;
 
-data.categories.forEach(c=>{
-Object.values(c.items||{}).forEach(i=>{
-i.done=false;
+data.categories.forEach(category=>{
+category.sections.forEach(section=>{
+section.items.forEach(item=>{
+item.done=false;
+});
 });
 });
 
