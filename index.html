@@ -110,9 +110,21 @@ cursor:pointer;
 }
 
 .section{
-margin-top:22px;
-padding-top:8px;
-border-top:2px solid #eee;
+margin-top:18px;
+padding:10px;
+border-radius:16px;
+background:#fafaff;
+border:1px solid #eee;
+}
+
+.section.dragging{
+opacity:0.45;
+background:#eeeaff;
+}
+
+.section.drag-over{
+background:#ddd8ff;
+transform:scale(1.01);
 }
 
 .section-header{
@@ -120,6 +132,7 @@ display:flex;
 align-items:center;
 gap:8px;
 margin-bottom:8px;
+cursor:pointer;
 }
 
 .section-title{
@@ -128,8 +141,14 @@ font-weight:bold;
 flex:1;
 }
 
+.collapse-icon{
+font-size:18px;
+width:24px;
+text-align:center;
+}
+
 .section-drop{
-min-height:20px;
+min-height:18px;
 border-radius:14px;
 padding-bottom:6px;
 }
@@ -359,12 +378,12 @@ categories:[
 name:"Pernille",
 icon:"👩",
 sections:[
-{name:"Tøj",items:[
+{name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"BH’er",done:false},
 {name:"Sokker",done:false}
 ]},
-{name:"Dokumenter",items:[
+{name:"Dokumenter",collapsed:false,items:[
 {name:"Pas",done:false}
 ]}
 ]
@@ -373,11 +392,11 @@ sections:[
 name:"Michael",
 icon:"👨",
 sections:[
-{name:"Tøj",items:[
+{name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"Strømper",done:false}
 ]},
-{name:"Dokumenter",items:[
+{name:"Dokumenter",collapsed:false,items:[
 {name:"Pas",done:false}
 ]}
 ]
@@ -386,7 +405,7 @@ sections:[
 name:"Oliver",
 icon:"👦",
 sections:[
-{name:"Tøj",items:[
+{name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"Undertrøjer",done:false},
 {name:"Sokker",done:false},
@@ -394,11 +413,11 @@ sections:[
 {name:"Trøje",done:false},
 {name:"T-shirt",done:false}
 ]},
-{name:"Overtøj",items:[
+{name:"Overtøj",collapsed:false,items:[
 {name:"Hue - kold",done:false},
 {name:"Jakke",done:false}
 ]},
-{name:"Toiletsager",items:[
+{name:"Toiletsager",collapsed:false,items:[
 {name:"Tandbørste",done:false}
 ]}
 ]
@@ -407,11 +426,11 @@ sections:[
 name:"Emma",
 icon:"👧",
 sections:[
-{name:"Tøj",items:[
+{name:"Tøj",collapsed:false,items:[
 {name:"Tøj",done:false},
 {name:"Nattøj",done:false}
 ]},
-{name:"Dokumenter",items:[
+{name:"Dokumenter",collapsed:false,items:[
 {name:"Pas",done:false}
 ]}
 ]
@@ -420,9 +439,9 @@ sections:[
 },
 nielsen:{
 categories:[
-{name:"Mor",icon:"👩",sections:[{name:"Diverse",items:[]}]},
-{name:"Far",icon:"👨",sections:[{name:"Diverse",items:[]}]},
-{name:"Barn",icon:"👧",sections:[{name:"Diverse",items:[]}]}
+{name:"Mor",icon:"👩",sections:[{name:"Diverse",collapsed:false,items:[]}]},
+{name:"Far",icon:"👨",sections:[{name:"Diverse",collapsed:false,items:[]}]},
+{name:"Barn",icon:"👧",sections:[{name:"Diverse",collapsed:false,items:[]}]}
 ]
 }
 };
@@ -468,6 +487,7 @@ let sections=[];
 if(category.sections){
 sections=Object.values(category.sections).map(section=>({
 name:section.name || "Diverse",
+collapsed:!!section.collapsed,
 items:Object.values(section.items || {}).map(item=>({
 name:item.name || "Uden navn",
 done:!!item.done
@@ -476,13 +496,14 @@ done:!!item.done
 }else if(category.items){
 sections=[{
 name:"Diverse",
+collapsed:false,
 items:Object.values(category.items || {}).map(item=>({
 name:item.name || "Uden navn",
 done:!!item.done
 }))
 }];
 }else{
-sections=[{name:"Diverse",items:[]}];
+sections=[{name:"Diverse",collapsed:false,items:[]}];
 }
 
 return {
@@ -613,20 +634,93 @@ progress.innerText=countDone(category)+" / "+itemCount(category)+" færdige";
 category.sections.forEach((section,sectionIndex)=>{
 const sectionDiv=document.createElement("div");
 sectionDiv.className="section";
+sectionDiv.draggable=true;
+
+sectionDiv.addEventListener("dragstart",function(e){
+e.stopPropagation();
+sectionDiv.classList.add("dragging");
+e.dataTransfer.setData("text/plain",JSON.stringify({
+type:"section",
+sectionIndex:sectionIndex
+}));
+});
+
+sectionDiv.addEventListener("dragend",function(){
+sectionDiv.classList.remove("dragging");
+document.querySelectorAll(".section").forEach(sectionElement=>{
+sectionElement.classList.remove("drag-over");
+});
+});
+
+sectionDiv.addEventListener("dragover",function(e){
+e.preventDefault();
+
+let dragData;
+try{
+dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+}catch{
+dragData=null;
+}
+
+if(dragData && dragData.type==="section"){
+document.querySelectorAll(".section").forEach(sectionElement=>{
+sectionElement.classList.remove("drag-over");
+});
+sectionDiv.classList.add("drag-over");
+}
+});
+
+sectionDiv.addEventListener("dragleave",function(){
+sectionDiv.classList.remove("drag-over");
+});
+
+sectionDiv.addEventListener("drop",function(e){
+e.preventDefault();
+sectionDiv.classList.remove("drag-over");
+
+let dragData;
+try{
+dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+}catch{
+dragData=null;
+}
+
+if(!dragData)return;
+
+if(dragData.type==="section"){
+moveSection(dragData.sectionIndex,sectionIndex);
+}
+});
 
 const header=document.createElement("div");
 header.className="section-header";
+
+const collapseIcon=document.createElement("div");
+collapseIcon.className="collapse-icon";
+collapseIcon.textContent=section.collapsed ? "▸" : "▾";
 
 const sectionTitle=document.createElement("div");
 sectionTitle.className="section-title";
 sectionTitle.textContent=section.name;
 
+collapseIcon.onclick=function(e){
+e.stopPropagation();
+toggleSection(sectionIndex);
+};
+
+sectionTitle.onclick=function(e){
+e.stopPropagation();
+toggleSection(sectionIndex);
+};
+
+header.appendChild(collapseIcon);
 header.appendChild(sectionTitle);
 
 const addButton=document.createElement("button");
 addButton.className="edit-btn";
 addButton.textContent="➕";
-addButton.onclick=function(){
+addButton.onclick=function(e){
+e.stopPropagation();
 addItemToSection(sectionIndex);
 };
 header.appendChild(addButton);
@@ -635,7 +729,8 @@ if(editMode){
 const editSectionButton=document.createElement("button");
 editSectionButton.className="edit-btn";
 editSectionButton.textContent="✏️";
-editSectionButton.onclick=function(){
+editSectionButton.onclick=function(e){
+e.stopPropagation();
 editSection(sectionIndex);
 };
 header.appendChild(editSectionButton);
@@ -643,7 +738,8 @@ header.appendChild(editSectionButton);
 const deleteSectionButton=document.createElement("button");
 deleteSectionButton.className="edit-btn";
 deleteSectionButton.textContent="🗑️";
-deleteSectionButton.onclick=function(){
+deleteSectionButton.onclick=function(e){
+e.stopPropagation();
 deleteSection(sectionIndex);
 };
 header.appendChild(deleteSectionButton);
@@ -656,7 +752,17 @@ dropArea.className="section-drop";
 
 dropArea.addEventListener("dragover",function(e){
 e.preventDefault();
+
+let dragData;
+try{
+dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+}catch{
+dragData=null;
+}
+
+if(dragData && dragData.type==="item"){
 dropArea.classList.add("drag-over");
+}
 });
 
 dropArea.addEventListener("dragleave",function(){
@@ -667,19 +773,31 @@ dropArea.addEventListener("drop",function(e){
 e.preventDefault();
 dropArea.classList.remove("drag-over");
 
-const dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+let dragData;
+try{
+dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+}catch{
+dragData=null;
+}
+
+if(!dragData)return;
+
+if(dragData.type==="item"){
 moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,section.items.length);
+}
 });
 
+if(!section.collapsed){
 section.items.forEach((item,itemIndex)=>{
 const div=document.createElement("div");
 div.className="item";
-
 div.draggable=true;
 
 div.addEventListener("dragstart",function(e){
+e.stopPropagation();
 div.classList.add("dragging");
 e.dataTransfer.setData("text/plain",JSON.stringify({
+type:"item",
 sectionIndex:sectionIndex,
 itemIndex:itemIndex
 }));
@@ -698,11 +816,20 @@ area.classList.remove("drag-over");
 div.addEventListener("dragover",function(e){
 e.preventDefault();
 
+let dragData;
+try{
+dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+}catch{
+dragData=null;
+}
+
+if(dragData && dragData.type==="item"){
 document.querySelectorAll(".item").forEach(itemElement=>{
 itemElement.classList.remove("drag-over");
 });
 
 div.classList.add("drag-over");
+}
 });
 
 div.addEventListener("dragleave",function(){
@@ -713,8 +840,18 @@ div.addEventListener("drop",function(e){
 e.preventDefault();
 div.classList.remove("drag-over");
 
-const dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+let dragData;
+try{
+dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
+}catch{
+dragData=null;
+}
+
+if(!dragData)return;
+
+if(dragData.type==="item"){
 moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,itemIndex);
+}
 });
 
 if(item.done){
@@ -750,10 +887,39 @@ div.appendChild(deleteButton);
 
 dropArea.appendChild(div);
 });
+}
 
 sectionDiv.appendChild(dropArea);
 container.appendChild(sectionDiv);
 });
+}
+
+function toggleSection(sectionIndex){
+const category=getSelectedCategory();
+if(!category)return;
+
+category.sections[sectionIndex].collapsed=!category.sections[sectionIndex].collapsed;
+
+render();
+save();
+}
+
+function moveSection(fromIndex,toIndex){
+const category=getSelectedCategory();
+if(!category)return;
+
+if(fromIndex===toIndex)return;
+
+const movedSection=category.sections.splice(fromIndex,1)[0];
+
+if(fromIndex<toIndex){
+toIndex--;
+}
+
+category.sections.splice(toIndex,0,movedSection);
+
+render();
+save();
 }
 
 function moveItem(fromSectionIndex,fromItemIndex,toSectionIndex,toItemIndex){
@@ -859,7 +1025,7 @@ const cat=data.categories.find(c=>c.name===box.value);
 if(!cat)return;
 
 if(!cat.sections || cat.sections.length===0){
-cat.sections=[{name:"Diverse",items:[]}];
+cat.sections=[{name:"Diverse",collapsed:false,items:[]}];
 }
 
 const section=cat.sections[0];
@@ -908,6 +1074,8 @@ name:trimmedName,
 done:false
 });
 
+section.collapsed=false;
+
 render();
 save();
 }
@@ -934,7 +1102,7 @@ data.categories.push({
 name:name,
 icon:emoji,
 sections:[
-{name:"Diverse",items:[]}
+{name:"Diverse",collapsed:false,items:[]}
 ]
 });
 
@@ -970,6 +1138,7 @@ return;
 
 category.sections.push({
 name:trimmedName,
+collapsed:false,
 items:[]
 });
 
@@ -1097,7 +1266,7 @@ if(!confirm("Vil du slette underkategorien "+section.name+"?"))return;
 category.sections.splice(sectionIndex,1);
 
 if(category.sections.length===0){
-category.sections.push({name:"Diverse",items:[]});
+category.sections.push({name:"Diverse",collapsed:false,items:[]});
 }
 
 render();
