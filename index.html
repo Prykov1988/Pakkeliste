@@ -12,305 +12,155 @@
 <style>
 *{box-sizing:border-box;}
 
-body{
-margin:0;
-font-family:Arial;
-background:#f5f4fb;
-color:#222;
-}
+body{margin:0;font-family:Arial;background:#f5f4fb;color:#222;}
 
 header{
-background:white;
-padding:18px;
-text-align:center;
-font-size:22px;
-font-weight:bold;
-border-bottom:1px solid #ddd;
-position:sticky;
-top:0;
-z-index:10;
+background:white;padding:18px;text-align:center;font-size:22px;font-weight:bold;
+border-bottom:1px solid #ddd;position:sticky;top:0;z-index:10;
 }
 
 .app{
-max-width:1100px;
-margin:auto;
-display:grid;
-grid-template-columns:280px 1fr 320px;
-gap:20px;
-padding:20px;
+max-width:1100px;margin:auto;display:grid;
+grid-template-columns:280px 1fr 320px;gap:20px;padding:20px;
 }
 
 .panel{
-background:white;
-border-radius:18px;
-padding:18px;
+background:white;border-radius:18px;padding:18px;
 box-shadow:0 4px 18px rgba(0,0,0,0.08);
 }
 
-.list-top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-margin-bottom:14px;
-}
+.list-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;}
 
 .family-select{
-padding:10px;
-border-radius:12px;
-border:1px solid #ccc;
-font-size:14px;
-background:white;
-max-width:170px;
+padding:10px;border-radius:12px;border:1px solid #ccc;
+font-size:14px;background:white;max-width:170px;
 }
 
 h2,h3{margin-top:0;}
 
 .category{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:14px;
-margin-bottom:10px;
-border-radius:14px;
-background:#f2f0fb;
-cursor:pointer;
+display:flex;align-items:center;justify-content:space-between;
+padding:14px;margin-bottom:10px;border-radius:14px;
+background:#f2f0fb;cursor:pointer;
 }
 
-.category.active{
-background:#ddd8ff;
-font-weight:bold;
-}
+.category.active{background:#ddd8ff;font-weight:bold;}
 
-.category-left{
-display:flex;
-align-items:center;
-gap:10px;
-}
+.category-left{display:flex;align-items:center;gap:10px;}
 
 .icon{font-size:22px;}
 
-.progress{
-font-size:13px;
-color:#666;
-}
+.progress{font-size:13px;color:#666;}
 
 .top-button,.save-button{
-width:100%;
-padding:14px;
-border:none;
-border-radius:14px;
-background:#5b4acb;
-color:white;
-font-size:16px;
-font-weight:bold;
-margin-top:14px;
-margin-bottom:14px;
-cursor:pointer;
+width:100%;padding:14px;border:none;border-radius:14px;
+background:#5b4acb;color:white;font-size:16px;font-weight:bold;
+margin-top:14px;margin-bottom:14px;cursor:pointer;
 }
 
 .section{
-margin-top:18px;
-padding:10px;
-border-radius:16px;
-background:#fafaff;
-border:1px solid #eee;
+margin-top:18px;padding:10px;border-radius:16px;
+background:#fafaff;border:1px solid #eee;
 }
 
-.section.dragging{
-opacity:0.45;
-background:#eeeaff;
+.section.default-section{
+background:white;
+border:none;
+padding:0;
+margin-top:12px;
 }
 
-.section.drag-over{
-background:#ddd8ff;
-transform:scale(1.01);
-}
+.section.dragging{opacity:0.45;background:#eeeaff;}
+.section.drag-over{background:#ddd8ff;transform:scale(1.01);}
 
 .section-header{
-display:flex;
-align-items:center;
-gap:8px;
-margin-bottom:8px;
-cursor:pointer;
+display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;
 }
 
 .section-title{
-font-size:22px;
-font-weight:bold;
-flex:1;
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
+font-size:22px;font-weight:bold;flex:1;
+display:flex;justify-content:space-between;align-items:center;gap:10px;
 }
 
-.section-count{
-font-size:14px;
-font-weight:normal;
-color:#666;
-white-space:nowrap;
-}
+.section-count{font-size:14px;font-weight:normal;color:#666;white-space:nowrap;}
 
-.collapse-icon{
-font-size:18px;
-width:24px;
-text-align:center;
-}
+.collapse-icon{font-size:18px;width:24px;text-align:center;}
 
-.section-drop{
-min-height:18px;
-border-radius:14px;
-padding-bottom:6px;
-}
-
-.section-drop.drag-over{
-background:#eeeaff;
-outline:2px dashed #5b4acb;
-}
+.section-drop{min-height:18px;border-radius:14px;padding-bottom:6px;}
+.section-drop.drag-over{background:#eeeaff;outline:2px dashed #5b4acb;}
 
 .item,.missing-item{
-display:flex;
-align-items:center;
-gap:12px;
-padding:13px 0;
-border-bottom:1px solid #eee;
-font-size:17px;
-transition:0.15s ease;
+display:flex;align-items:center;gap:12px;padding:13px 0;
+border-bottom:1px solid #eee;font-size:17px;transition:0.15s ease;
 }
 
 .item span,.missing-item span{flex:1;}
 
 .item input,.missing-item input{
-width:22px;
-height:22px;
-accent-color:#5b4acb;
+width:22px;height:22px;accent-color:#5b4acb;
 }
 
-.item.done span,.missing-item.done span{
-text-decoration:line-through;
-color:#999;
-}
+.item.done span,.missing-item.done span{text-decoration:line-through;color:#999;}
 
-.item.dragging{
-opacity:0.45;
-background:#eeeaff;
-border-radius:12px;
-}
-
-.item.drag-over{
-background:#ddd8ff;
-border-radius:12px;
-transform:scale(1.02);
-}
+.item.dragging{opacity:0.45;background:#eeeaff;border-radius:12px;}
+.item.drag-over{background:#ddd8ff;border-radius:12px;transform:scale(1.02);}
 
 .missing-category{
-margin-top:22px;
-padding-top:10px;
-border-top:2px solid #eee;
+margin-top:22px;padding-top:10px;border-top:2px solid #eee;
 }
 
 .missing-category-title{
-font-size:21px;
-font-weight:bold;
-margin-bottom:8px;
+font-size:21px;font-weight:bold;margin-bottom:8px;
 }
 
 .missing-section-name{
-font-size:13px;
-color:#666;
-margin-left:34px;
+font-size:13px;color:#666;margin-left:34px;
 }
 
 .empty-message{
-background:#f2f0fb;
-padding:16px;
-border-radius:14px;
-font-size:16px;
+background:#f2f0fb;padding:16px;border-radius:14px;font-size:16px;
 }
 
 input[type="text"]{
-width:100%;
-padding:13px;
-font-size:16px;
-border-radius:12px;
-border:1px solid #ccc;
-margin-bottom:14px;
+width:100%;padding:13px;font-size:16px;border-radius:12px;
+border:1px solid #ccc;margin-bottom:14px;
 }
 
-label{
-display:block;
-margin:10px 0;
-font-size:15px;
-}
-
+label{display:block;margin:10px 0;font-size:15px;}
 label input{margin-right:8px;}
 
 .mobile-nav{display:none;}
 
 .edit-btn{
-border:none;
-background:#eee;
-border-radius:10px;
-padding:7px 9px;
-cursor:pointer;
-width:38px;
-height:38px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:18px;
+border:none;background:#eee;border-radius:10px;padding:7px 9px;
+cursor:pointer;width:38px;height:38px;display:flex;
+align-items:center;justify-content:center;font-size:18px;
 }
 
 .edit-box{
-background:#fff2c6;
-border-radius:12px;
-padding:10px;
-margin-bottom:14px;
-font-size:14px;
-display:none;
+background:#fff2c6;border-radius:12px;padding:10px;
+margin-bottom:14px;font-size:14px;display:none;
 }
 
 .edit-box.active{display:block;}
 
 #selectedCategoryTitle{
-display:flex;
-align-items:center;
-gap:10px;
+display:flex;align-items:center;gap:10px;
 }
 
-#selectedCategoryTitle span{
-flex:1;
-}
+#selectedCategoryTitle span{flex:1;}
 
 @media(max-width:800px){
-.app{
-display:block;
-padding:14px;
-}
-
-.panel{
-margin-bottom:16px;
-box-shadow:none;
-}
+.app{display:block;padding:14px;}
+.panel{margin-bottom:16px;box-shadow:none;}
 
 .mobile-nav{
-display:flex;
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:white;
-border-top:1px solid #ddd;
-justify-content:space-around;
-padding:10px 0;
+display:flex;position:fixed;bottom:0;left:0;right:0;background:white;
+border-top:1px solid #ddd;justify-content:space-around;padding:10px 0;
 }
 
 .mobile-nav button{
-background:none;
-border:none;
-font-size:12px;
-color:#333;
+background:none;border:none;font-size:12px;color:#333;
 }
 
 .screen{display:none;}
@@ -420,37 +270,22 @@ const DEFAULT_SECTION_NAME="__default__";
 const defaultFamilyData={
 rykov:{
 categories:[
-{
-name:"Pernille",
-icon:"👩",
-sections:[
-{name:DEFAULT_SECTION_NAME,collapsed:false,items:[
-{name:"Pas",done:false}
-]},
+{name:"Pernille",icon:"👩",sections:[
+{name:DEFAULT_SECTION_NAME,collapsed:false,items:[{name:"Pas",done:false}]},
 {name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"BH’er",done:false},
 {name:"Sokker",done:false}
 ]}
-]
-},
-{
-name:"Michael",
-icon:"👨",
-sections:[
-{name:DEFAULT_SECTION_NAME,collapsed:false,items:[
-{name:"Pas",done:false}
 ]},
+{name:"Michael",icon:"👨",sections:[
+{name:DEFAULT_SECTION_NAME,collapsed:false,items:[{name:"Pas",done:false}]},
 {name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"Strømper",done:false}
 ]}
-]
-},
-{
-name:"Oliver",
-icon:"👦",
-sections:[
+]},
+{name:"Oliver",icon:"👦",sections:[
 {name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"Undertrøjer",done:false},
@@ -466,21 +301,14 @@ sections:[
 {name:"Toiletsager",collapsed:false,items:[
 {name:"Tandbørste",done:false}
 ]}
-]
-},
-{
-name:"Emma",
-icon:"👧",
-sections:[
-{name:DEFAULT_SECTION_NAME,collapsed:false,items:[
-{name:"Pas",done:false}
 ]},
+{name:"Emma",icon:"👧",sections:[
+{name:DEFAULT_SECTION_NAME,collapsed:false,items:[{name:"Pas",done:false}]},
 {name:"Tøj",collapsed:false,items:[
 {name:"Tøj",done:false},
 {name:"Nattøj",done:false}
 ]}
-]
-}
+]}
 ]
 },
 nielsen:{
@@ -552,6 +380,10 @@ done:!!item.done
 sections=[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}];
 }
 
+if(!sections.some(section=>section.name===DEFAULT_SECTION_NAME)){
+sections.unshift({name:DEFAULT_SECTION_NAME,collapsed:false,items:[]});
+}
+
 return {
 name:category.name || "Uden navn",
 icon:category.icon || "",
@@ -591,8 +423,12 @@ count+=section.items.length;
 return count;
 }
 
-function sectionMissingCount(section){
-return section.items.filter(item=>!item.done).length;
+function sectionDoneCount(section){
+return section.items.filter(item=>item.done).length;
+}
+
+function sectionItemCount(section){
+return section.items.length;
 }
 
 function render(){
@@ -616,7 +452,6 @@ container.innerHTML="";
 data.categories.forEach(category=>{
 const done=countDone(category);
 const total=itemCount(category);
-const missing=total-done;
 
 const div=document.createElement("div");
 div.className="category";
@@ -635,7 +470,7 @@ div.innerHTML=`
 <span class="icon">${category.icon||""}</span>
 <span>${category.name}</span>
 </div>
-<span class="progress">${missing} / ${total} mangler</span>
+<span class="progress">${done} / ${total}</span>
 `;
 
 container.appendChild(div);
@@ -661,6 +496,14 @@ const titleText=document.createElement("span");
 titleText.textContent=(category.icon||"")+" "+category.name;
 title.appendChild(titleText);
 
+const addDefaultButton=document.createElement("button");
+addDefaultButton.className="edit-btn";
+addDefaultButton.textContent="➕";
+addDefaultButton.onclick=function(){
+addItemToDefaultSection();
+};
+title.appendChild(addDefaultButton);
+
 if(editMode){
 const categoryIndex=getSelectedCategoryIndex();
 
@@ -683,15 +526,14 @@ title.appendChild(deleteButton);
 
 const total=itemCount(category);
 const done=countDone(category);
-const missing=total-done;
 
-progress.innerText=missing+" / "+total+" mangler";
+progress.innerText=done+" / "+total;
 
 category.sections.forEach((section,sectionIndex)=>{
 const isDefaultSection=section.name===DEFAULT_SECTION_NAME;
 
 const sectionDiv=document.createElement("div");
-sectionDiv.className="section";
+sectionDiv.className=isDefaultSection ? "section default-section" : "section";
 sectionDiv.draggable=!isDefaultSection;
 
 if(!isDefaultSection){
@@ -715,11 +557,7 @@ sectionDiv.addEventListener("dragover",function(e){
 e.preventDefault();
 
 let dragData;
-try{
-dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
-}catch{
-dragData=null;
-}
+try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
 
 if(dragData && dragData.type==="section"){
 document.querySelectorAll(".section").forEach(sectionElement=>{
@@ -738,11 +576,7 @@ e.preventDefault();
 sectionDiv.classList.remove("drag-over");
 
 let dragData;
-try{
-dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
-}catch{
-dragData=null;
-}
+try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
 
 if(!dragData)return;
 
@@ -763,12 +597,12 @@ collapseIcon.textContent=section.collapsed ? "▸" : "▾";
 const sectionTitle=document.createElement("div");
 sectionTitle.className="section-title";
 
-const missingInSection=sectionMissingCount(section);
-const totalInSection=section.items.length;
+const doneInSection=sectionDoneCount(section);
+const totalInSection=sectionItemCount(section);
 
 sectionTitle.innerHTML=`
 <span>${section.name}</span>
-<span class="section-count">${missingInSection} / ${totalInSection} mangler</span>
+<span class="section-count">${doneInSection} / ${totalInSection}</span>
 `;
 
 collapseIcon.onclick=function(e){
@@ -823,11 +657,7 @@ dropArea.addEventListener("dragover",function(e){
 e.preventDefault();
 
 let dragData;
-try{
-dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
-}catch{
-dragData=null;
-}
+try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
 
 if(dragData && dragData.type==="item"){
 dropArea.classList.add("drag-over");
@@ -843,11 +673,7 @@ e.preventDefault();
 dropArea.classList.remove("drag-over");
 
 let dragData;
-try{
-dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
-}catch{
-dragData=null;
-}
+try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
 
 if(!dragData)return;
 
@@ -886,11 +712,7 @@ div.addEventListener("dragover",function(e){
 e.preventDefault();
 
 let dragData;
-try{
-dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
-}catch{
-dragData=null;
-}
+try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
 
 if(dragData && dragData.type==="item"){
 document.querySelectorAll(".item").forEach(itemElement=>{
@@ -910,11 +732,7 @@ e.preventDefault();
 div.classList.remove("drag-over");
 
 let dragData;
-try{
-dragData=JSON.parse(e.dataTransfer.getData("text/plain"));
-}catch{
-dragData=null;
-}
+try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
 
 if(!dragData)return;
 
@@ -1046,6 +864,50 @@ render();
 save();
 };
 
+function getDefaultSection(category){
+let section=category.sections.find(section=>section.name===DEFAULT_SECTION_NAME);
+
+if(!section){
+section={name:DEFAULT_SECTION_NAME,collapsed:false,items:[]};
+category.sections.unshift(section);
+}
+
+return section;
+}
+
+function addItemToDefaultSection(){
+const category=getSelectedCategory();
+
+if(!category)return;
+
+const section=getDefaultSection(category);
+
+const name=prompt("Tilføj ting til "+category.name+":");
+
+if(name===null)return;
+
+const trimmedName=name.trim();
+
+if(!trimmedName)return;
+
+const exists=section.items.some(
+item=>item.name.toLowerCase()===trimmedName.toLowerCase()
+);
+
+if(exists){
+alert("Tingen findes allerede.");
+return;
+}
+
+section.items.push({
+name:trimmedName,
+done:false
+});
+
+render();
+save();
+}
+
 function toggleSection(sectionIndex){
 const category=getSelectedCategory();
 if(!category)return;
@@ -1071,6 +933,10 @@ return;
 
 if(fromIndex<toIndex){
 toIndex--;
+}
+
+if(category.sections[toIndex] && category.sections[toIndex].name===DEFAULT_SECTION_NAME){
+toIndex=1;
 }
 
 category.sections.splice(toIndex,0,movedSection);
@@ -1185,7 +1051,7 @@ if(!cat.sections || cat.sections.length===0){
 cat.sections=[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}];
 }
 
-const section=cat.sections[0];
+const section=getDefaultSection(cat);
 
 const exists=section.items.some(
 i=>i.name.toLowerCase()===name.toLowerCase()
@@ -1349,6 +1215,11 @@ const category=getSelectedCategory();
 if(!category)return;
 
 const section=category.sections[sectionIndex];
+
+if(section.name===DEFAULT_SECTION_NAME){
+alert("Denne standardsektion kan ikke omdøbes.");
+return;
+}
 
 const newName=prompt("Ret underkategori:",section.name);
 
