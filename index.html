@@ -139,6 +139,17 @@ cursor:pointer;
 font-size:22px;
 font-weight:bold;
 flex:1;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+}
+
+.section-count{
+font-size:14px;
+font-weight:normal;
+color:#666;
+white-space:nowrap;
 }
 
 .collapse-icon{
@@ -158,7 +169,7 @@ background:#eeeaff;
 outline:2px dashed #5b4acb;
 }
 
-.item{
+.item,.missing-item{
 display:flex;
 align-items:center;
 gap:12px;
@@ -168,15 +179,15 @@ font-size:17px;
 transition:0.15s ease;
 }
 
-.item span{flex:1;}
+.item span,.missing-item span{flex:1;}
 
-.item input{
+.item input,.missing-item input{
 width:22px;
 height:22px;
 accent-color:#5b4acb;
 }
 
-.item.done span{
+.item.done span,.missing-item.done span{
 text-decoration:line-through;
 color:#999;
 }
@@ -191,6 +202,31 @@ border-radius:12px;
 background:#ddd8ff;
 border-radius:12px;
 transform:scale(1.02);
+}
+
+.missing-category{
+margin-top:22px;
+padding-top:10px;
+border-top:2px solid #eee;
+}
+
+.missing-category-title{
+font-size:21px;
+font-weight:bold;
+margin-bottom:8px;
+}
+
+.missing-section-name{
+font-size:13px;
+color:#666;
+margin-left:34px;
+}
+
+.empty-message{
+background:#f2f0fb;
+padding:16px;
+border-radius:14px;
+font-size:16px;
 }
 
 input[type="text"]{
@@ -273,14 +309,14 @@ padding:10px 0;
 .mobile-nav button{
 background:none;
 border:none;
-font-size:13px;
+font-size:12px;
 color:#333;
 }
 
 .screen{display:none;}
 .screen.active{display:block;}
 
-body{padding-bottom:70px;}
+body{padding-bottom:76px;}
 }
 </style>
 </head>
@@ -302,6 +338,7 @@ body{padding-bottom:70px;}
 </select>
 </div>
 
+<button class="top-button" onclick="showScreen('missingScreen')">📋 Se hvad der mangler</button>
 <button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
 
 <div id="categoryList"></div>
@@ -337,11 +374,18 @@ Redigering er slået til. Brug ✏️ for at redigere og 🗑️ for at slette.
 <button class="save-button" onclick="addItem()">Gem</button>
 </section>
 
+<section id="missingScreen" class="panel screen">
+<h2>📋 Det mangler vi</h2>
+<p id="missingSummary"></p>
+<div id="missingList"></div>
+</section>
+
 </main>
 
 <nav class="mobile-nav">
 <button onclick="showScreen('listScreen')">📋<br>Liste</button>
 <button onclick="showScreen('addScreen')">➕<br>Tilføj</button>
+<button onclick="showScreen('missingScreen')">🧾<br>Mangler</button>
 <button id="editNavButton" onclick="toggleEditMode()">✏️<br>Rediger</button>
 <button onclick="startNewTrip()">↻<br>Ny rejse</button>
 </nav>
@@ -371,6 +415,8 @@ let selectedCategory="";
 let editMode=false;
 let currentScreen="listScreen";
 
+const DEFAULT_SECTION_NAME="__default__";
+
 const defaultFamilyData={
 rykov:{
 categories:[
@@ -378,13 +424,13 @@ categories:[
 name:"Pernille",
 icon:"👩",
 sections:[
+{name:DEFAULT_SECTION_NAME,collapsed:false,items:[
+{name:"Pas",done:false}
+]},
 {name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"BH’er",done:false},
 {name:"Sokker",done:false}
-]},
-{name:"Dokumenter",collapsed:false,items:[
-{name:"Pas",done:false}
 ]}
 ]
 },
@@ -392,12 +438,12 @@ sections:[
 name:"Michael",
 icon:"👨",
 sections:[
+{name:DEFAULT_SECTION_NAME,collapsed:false,items:[
+{name:"Pas",done:false}
+]},
 {name:"Tøj",collapsed:false,items:[
 {name:"Underbukser",done:false},
 {name:"Strømper",done:false}
-]},
-{name:"Dokumenter",collapsed:false,items:[
-{name:"Pas",done:false}
 ]}
 ]
 },
@@ -426,12 +472,12 @@ sections:[
 name:"Emma",
 icon:"👧",
 sections:[
+{name:DEFAULT_SECTION_NAME,collapsed:false,items:[
+{name:"Pas",done:false}
+]},
 {name:"Tøj",collapsed:false,items:[
 {name:"Tøj",done:false},
 {name:"Nattøj",done:false}
-]},
-{name:"Dokumenter",collapsed:false,items:[
-{name:"Pas",done:false}
 ]}
 ]
 }
@@ -439,9 +485,9 @@ sections:[
 },
 nielsen:{
 categories:[
-{name:"Mor",icon:"👩",sections:[{name:"Diverse",collapsed:false,items:[]}]},
-{name:"Far",icon:"👨",sections:[{name:"Diverse",collapsed:false,items:[]}]},
-{name:"Barn",icon:"👧",sections:[{name:"Diverse",collapsed:false,items:[]}]}
+{name:"Mor",icon:"👩",sections:[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}]},
+{name:"Far",icon:"👨",sections:[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}]},
+{name:"Barn",icon:"👧",sections:[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}]}
 ]
 }
 };
@@ -486,7 +532,7 @@ let sections=[];
 
 if(category.sections){
 sections=Object.values(category.sections).map(section=>({
-name:section.name || "Diverse",
+name:section.name || DEFAULT_SECTION_NAME,
 collapsed:!!section.collapsed,
 items:Object.values(section.items || {}).map(item=>({
 name:item.name || "Uden navn",
@@ -495,7 +541,7 @@ done:!!item.done
 }));
 }else if(category.items){
 sections=[{
-name:"Diverse",
+name:DEFAULT_SECTION_NAME,
 collapsed:false,
 items:Object.values(category.items || {}).map(item=>({
 name:item.name || "Uden navn",
@@ -503,7 +549,7 @@ done:!!item.done
 }))
 }];
 }else{
-sections=[{name:"Diverse",collapsed:false,items:[]}];
+sections=[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}];
 }
 
 return {
@@ -545,11 +591,16 @@ count+=section.items.length;
 return count;
 }
 
+function sectionMissingCount(section){
+return section.items.filter(item=>!item.done).length;
+}
+
 function render(){
 document.getElementById("familySelect").value=currentFamily;
 renderCategories();
 renderItems();
 renderCategoryCheckboxes();
+renderMissingOverview();
 renderEditMode();
 updateEditButtonVisibility(currentScreen);
 }
@@ -565,6 +616,7 @@ container.innerHTML="";
 data.categories.forEach(category=>{
 const done=countDone(category);
 const total=itemCount(category);
+const missing=total-done;
 
 const div=document.createElement("div");
 div.className="category";
@@ -583,7 +635,7 @@ div.innerHTML=`
 <span class="icon">${category.icon||""}</span>
 <span>${category.name}</span>
 </div>
-<span class="progress">${done} / ${total}</span>
+<span class="progress">${missing} / ${total} mangler</span>
 `;
 
 container.appendChild(div);
@@ -629,13 +681,20 @@ deleteCategory(categoryIndex);
 title.appendChild(deleteButton);
 }
 
-progress.innerText=countDone(category)+" / "+itemCount(category)+" færdige";
+const total=itemCount(category);
+const done=countDone(category);
+const missing=total-done;
+
+progress.innerText=missing+" / "+total+" mangler";
 
 category.sections.forEach((section,sectionIndex)=>{
+const isDefaultSection=section.name===DEFAULT_SECTION_NAME;
+
 const sectionDiv=document.createElement("div");
 sectionDiv.className="section";
-sectionDiv.draggable=true;
+sectionDiv.draggable=!isDefaultSection;
 
+if(!isDefaultSection){
 sectionDiv.addEventListener("dragstart",function(e){
 e.stopPropagation();
 sectionDiv.classList.add("dragging");
@@ -691,7 +750,9 @@ if(dragData.type==="section"){
 moveSection(dragData.sectionIndex,sectionIndex);
 }
 });
+}
 
+if(!isDefaultSection){
 const header=document.createElement("div");
 header.className="section-header";
 
@@ -701,7 +762,14 @@ collapseIcon.textContent=section.collapsed ? "▸" : "▾";
 
 const sectionTitle=document.createElement("div");
 sectionTitle.className="section-title";
-sectionTitle.textContent=section.name;
+
+const missingInSection=sectionMissingCount(section);
+const totalInSection=section.items.length;
+
+sectionTitle.innerHTML=`
+<span>${section.name}</span>
+<span class="section-count">${missingInSection} / ${totalInSection} mangler</span>
+`;
 
 collapseIcon.onclick=function(e){
 e.stopPropagation();
@@ -746,6 +814,7 @@ header.appendChild(deleteSectionButton);
 }
 
 sectionDiv.appendChild(header);
+}
 
 const dropArea=document.createElement("div");
 dropArea.className="section-drop";
@@ -787,7 +856,7 @@ moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,section.items.len
 }
 });
 
-if(!section.collapsed){
+if(!section.collapsed || isDefaultSection){
 section.items.forEach((item,itemIndex)=>{
 const div=document.createElement("div");
 div.className="item";
@@ -894,6 +963,89 @@ container.appendChild(sectionDiv);
 });
 }
 
+function renderMissingOverview(){
+const container=document.getElementById("missingList");
+const summary=document.getElementById("missingSummary");
+
+container.innerHTML="";
+
+let totalMissing=0;
+
+data.categories.forEach(category=>{
+category.sections.forEach(section=>{
+section.items.forEach(item=>{
+if(!item.done)totalMissing++;
+});
+});
+});
+
+summary.innerText=totalMissing+" ting mangler i alt";
+
+if(totalMissing===0){
+container.innerHTML=`<div class="empty-message">🎉 Alt er pakket!</div>`;
+return;
+}
+
+data.categories.forEach((category,categoryIndex)=>{
+let categoryHasMissing=false;
+
+category.sections.forEach(section=>{
+section.items.forEach(item=>{
+if(!item.done)categoryHasMissing=true;
+});
+});
+
+if(!categoryHasMissing)return;
+
+const categoryDiv=document.createElement("div");
+categoryDiv.className="missing-category";
+
+const title=document.createElement("div");
+title.className="missing-category-title";
+title.textContent=(category.icon||"")+" "+category.name;
+categoryDiv.appendChild(title);
+
+category.sections.forEach((section,sectionIndex)=>{
+section.items.forEach((item,itemIndex)=>{
+if(item.done)return;
+
+const row=document.createElement("div");
+row.className="missing-item";
+
+const checkbox=document.createElement("input");
+checkbox.type="checkbox";
+checkbox.checked=false;
+checkbox.onchange=function(){
+toggleMissingItem(categoryIndex,sectionIndex,itemIndex);
+};
+
+const text=document.createElement("span");
+
+if(section.name===DEFAULT_SECTION_NAME){
+text.textContent=item.name;
+}else{
+text.innerHTML=`<div>${item.name}</div><div class="missing-section-name">${section.name}</div>`;
+}
+
+row.appendChild(checkbox);
+row.appendChild(text);
+categoryDiv.appendChild(row);
+});
+});
+
+container.appendChild(categoryDiv);
+});
+}
+
+window.toggleMissingItem=function(categoryIndex,sectionIndex,itemIndex){
+const item=data.categories[categoryIndex].sections[sectionIndex].items[itemIndex];
+
+item.done=!item.done;
+
+render();
+save();
+};
+
 function toggleSection(sectionIndex){
 const category=getSelectedCategory();
 if(!category)return;
@@ -911,6 +1063,11 @@ if(!category)return;
 if(fromIndex===toIndex)return;
 
 const movedSection=category.sections.splice(fromIndex,1)[0];
+
+if(movedSection.name===DEFAULT_SECTION_NAME){
+category.sections.splice(fromIndex,0,movedSection);
+return;
+}
 
 if(fromIndex<toIndex){
 toIndex--;
@@ -1025,7 +1182,7 @@ const cat=data.categories.find(c=>c.name===box.value);
 if(!cat)return;
 
 if(!cat.sections || cat.sections.length===0){
-cat.sections=[{name:"Diverse",collapsed:false,items:[]}];
+cat.sections=[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}];
 }
 
 const section=cat.sections[0];
@@ -1052,7 +1209,9 @@ if(!category)return;
 const section=category.sections[sectionIndex];
 if(!section)return;
 
-const name=prompt("Tilføj ting til "+section.name+":");
+const sectionLabel=section.name===DEFAULT_SECTION_NAME ? category.name : section.name;
+
+const name=prompt("Tilføj ting til "+sectionLabel+":");
 
 if(name===null)return;
 
@@ -1065,7 +1224,7 @@ item=>item.name.toLowerCase()===trimmedName.toLowerCase()
 );
 
 if(exists){
-alert("Tingen findes allerede i denne underkategori.");
+alert("Tingen findes allerede.");
 return;
 }
 
@@ -1102,7 +1261,7 @@ data.categories.push({
 name:name,
 icon:emoji,
 sections:[
-{name:"Diverse",collapsed:false,items:[]}
+{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}
 ]
 });
 
@@ -1257,6 +1416,11 @@ if(!category)return;
 
 const section=category.sections[sectionIndex];
 
+if(section.name===DEFAULT_SECTION_NAME){
+alert("Denne standardsektion kan ikke slettes.");
+return;
+}
+
 if(section.items.length>0){
 if(!confirm("Underkategorien indeholder ting. Vil du slette den alligevel?"))return;
 }else{
@@ -1266,7 +1430,7 @@ if(!confirm("Vil du slette underkategorien "+section.name+"?"))return;
 category.sections.splice(sectionIndex,1);
 
 if(category.sections.length===0){
-category.sections.push({name:"Diverse",collapsed:false,items:[]});
+category.sections.push({name:DEFAULT_SECTION_NAME,collapsed:false,items:[]});
 }
 
 render();
