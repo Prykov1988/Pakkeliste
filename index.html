@@ -11,161 +11,65 @@
 
 <style>
 *{box-sizing:border-box;}
-
 body{margin:0;font-family:Arial;background:#f5f4fb;color:#222;}
-
-header{
-background:white;padding:18px;text-align:center;font-size:22px;font-weight:bold;
-border-bottom:1px solid #ddd;position:sticky;top:0;z-index:10;
-}
-
-.app{
-max-width:1100px;margin:auto;display:grid;
-grid-template-columns:280px 1fr 320px;gap:20px;padding:20px;
-}
-
-.panel{
-background:white;border-radius:18px;padding:18px;
-box-shadow:0 4px 18px rgba(0,0,0,0.08);
-}
-
-.list-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;}
-
-.family-select{
-padding:10px;border-radius:12px;border:1px solid #ccc;
-font-size:14px;background:white;max-width:170px;
-}
-
+header{background:white;padding:18px;text-align:center;font-size:22px;font-weight:bold;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:10;}
+.app{max-width:1100px;margin:auto;display:grid;grid-template-columns:280px 1fr 320px;gap:20px;padding:20px;}
+.panel{background:white;border-radius:18px;padding:18px;box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#f5f4fb;}
+.login-card{background:white;border-radius:26px;padding:28px;max-width:420px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,0.12);}
+.login-card h1{text-align:center;margin-top:0;font-size:34px;}
+.login-card p{text-align:center;color:#666;}
+.login-card input{width:100%;padding:15px;font-size:16px;border-radius:14px;border:1px solid #ccc;margin-bottom:14px;}
+.login-card button{width:100%;padding:15px;border:none;border-radius:14px;background:#5b4acb;color:white;font-size:17px;font-weight:bold;margin-top:8px;}
+.secondary-btn{background:#eee!important;color:#222!important;}
+.error{color:#b00020;text-align:center;margin-top:10px;}
+.user-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;font-size:14px;color:#666;}
+.logout-btn{border:none;background:#eee;border-radius:10px;padding:8px 10px;cursor:pointer;}
 h2,h3{margin-top:0;}
-
-.category{
-display:flex;align-items:center;justify-content:space-between;
-padding:14px;margin-bottom:10px;border-radius:14px;
-background:#f2f0fb;cursor:pointer;
-}
-
+.category{display:flex;align-items:center;justify-content:space-between;padding:14px;margin-bottom:10px;border-radius:14px;background:#f2f0fb;cursor:pointer;}
 .category.active{background:#ddd8ff;font-weight:bold;}
-
 .category-left{display:flex;align-items:center;gap:10px;}
-
 .icon{font-size:22px;}
-
 .progress{font-size:13px;color:#666;}
-
-.top-button,.save-button{
-width:100%;padding:14px;border:none;border-radius:14px;
-background:#5b4acb;color:white;font-size:16px;font-weight:bold;
-margin-top:14px;margin-bottom:14px;cursor:pointer;
-}
-
-.section{
-margin-top:18px;padding:10px;border-radius:16px;
-background:#fafaff;border:1px solid #eee;
-}
-
-.section.default-section{
-background:white;
-border:none;
-padding:0;
-margin-top:12px;
-}
-
-.section.dragging{opacity:0.45;background:#eeeaff;}
+.top-button,.save-button{width:100%;padding:14px;border:none;border-radius:14px;background:#5b4acb;color:white;font-size:16px;font-weight:bold;margin-top:14px;margin-bottom:14px;cursor:pointer;}
+.section{margin-top:18px;padding:10px;border-radius:16px;background:#fafaff;border:1px solid #eee;}
+.section.default-section{background:white;border:none;padding:0;margin-top:12px;}
+.section.dragging{opacity:.45;background:#eeeaff;}
 .section.drag-over{background:#ddd8ff;transform:scale(1.01);}
-
-.section-header{
-display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;
-}
-
-.section-title{
-font-size:22px;font-weight:bold;flex:1;
-display:flex;justify-content:space-between;align-items:center;gap:10px;
-}
-
+.section-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;}
+.section-title{font-size:22px;font-weight:bold;flex:1;display:flex;justify-content:space-between;align-items:center;gap:10px;}
 .section-count{font-size:14px;font-weight:normal;color:#666;white-space:nowrap;}
-
 .collapse-icon{font-size:18px;width:24px;text-align:center;}
-
 .section-drop{min-height:18px;border-radius:14px;padding-bottom:6px;}
 .section-drop.drag-over{background:#eeeaff;outline:2px dashed #5b4acb;}
-
-.item,.missing-item{
-display:flex;align-items:center;gap:12px;padding:13px 0;
-border-bottom:1px solid #eee;font-size:17px;transition:0.15s ease;
-}
-
+.item,.missing-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #eee;font-size:17px;transition:.15s ease;}
 .item span,.missing-item span{flex:1;}
-
-.item input,.missing-item input{
-width:22px;height:22px;accent-color:#5b4acb;
-}
-
+.item input,.missing-item input{width:22px;height:22px;accent-color:#5b4acb;}
 .item.done span,.missing-item.done span{text-decoration:line-through;color:#999;}
-
-.item.dragging{opacity:0.45;background:#eeeaff;border-radius:12px;}
+.item.dragging{opacity:.45;background:#eeeaff;border-radius:12px;}
 .item.drag-over{background:#ddd8ff;border-radius:12px;transform:scale(1.02);}
-
-.missing-category{
-margin-top:22px;padding-top:10px;border-top:2px solid #eee;
-}
-
-.missing-category-title{
-font-size:21px;font-weight:bold;margin-bottom:8px;
-}
-
-.missing-section-name{
-font-size:13px;color:#666;margin-left:34px;
-}
-
-.empty-message{
-background:#f2f0fb;padding:16px;border-radius:14px;font-size:16px;
-}
-
-input[type="text"]{
-width:100%;padding:13px;font-size:16px;border-radius:12px;
-border:1px solid #ccc;margin-bottom:14px;
-}
-
+.missing-category{margin-top:22px;padding-top:10px;border-top:2px solid #eee;}
+.missing-category-title{font-size:21px;font-weight:bold;margin-bottom:8px;}
+.missing-section-name{font-size:13px;color:#666;margin-left:34px;}
+.empty-message{background:#f2f0fb;padding:16px;border-radius:14px;font-size:16px;}
+input[type="text"]{width:100%;padding:13px;font-size:16px;border-radius:12px;border:1px solid #ccc;margin-bottom:14px;}
 label{display:block;margin:10px 0;font-size:15px;}
 label input{margin-right:8px;}
-
 .mobile-nav{display:none;}
-
-.edit-btn{
-border:none;background:#eee;border-radius:10px;padding:7px 9px;
-cursor:pointer;width:38px;height:38px;display:flex;
-align-items:center;justify-content:center;font-size:18px;
-}
-
-.edit-box{
-background:#fff2c6;border-radius:12px;padding:10px;
-margin-bottom:14px;font-size:14px;display:none;
-}
-
+.edit-btn{border:none;background:#eee;border-radius:10px;padding:7px 9px;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.edit-box{background:#fff2c6;border-radius:12px;padding:10px;margin-bottom:14px;font-size:14px;display:none;}
 .edit-box.active{display:block;}
-
-#selectedCategoryTitle{
-display:flex;align-items:center;gap:10px;
-}
-
+#selectedCategoryTitle{display:flex;align-items:center;gap:10px;}
 #selectedCategoryTitle span{flex:1;}
+.hidden{display:none!important;}
 
 @media(max-width:800px){
 .app{display:block;padding:14px;}
 .panel{margin-bottom:16px;box-shadow:none;}
-
-.mobile-nav{
-display:flex;position:fixed;bottom:0;left:0;right:0;background:white;
-border-top:1px solid #ddd;justify-content:space-around;padding:10px 0;
-}
-
-.mobile-nav button{
-background:none;border:none;font-size:12px;color:#333;
-}
-
+.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;justify-content:space-around;padding:10px 0;}
+.mobile-nav button{background:none;border:none;font-size:12px;color:#333;}
 .screen{display:none;}
 .screen.active{display:block;}
-
 body{padding-bottom:76px;}
 }
 </style>
@@ -173,20 +77,35 @@ body{padding-bottom:76px;}
 
 <body>
 
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <h1>Rejseliste</h1>
+    <p>Log ind for at se Familie Rykovs pakkeliste</p>
+
+    <input id="emailInput" type="email" placeholder="Email">
+    <input id="passwordInput" type="password" placeholder="Kodeord">
+
+    <button onclick="login()">Log ind</button>
+    <button class="secondary-btn" onclick="signup()">Opret bruger</button>
+
+    <div id="loginError" class="error"></div>
+  </div>
+</div>
+
+<div id="appShell" class="hidden">
+
 <header>Rejseliste</header>
 
 <main class="app">
 
 <section id="listScreen" class="panel screen active">
 
-<div class="list-top">
-<h2>Kategorier</h2>
-
-<select id="familySelect" class="family-select" onchange="changeFamily()">
-<option value="rykov">Familie Rykov</option>
-<option value="nielsen">Familie Nielsen</option>
-</select>
+<div class="user-bar">
+  <span id="userEmail"></span>
+  <button class="logout-btn" onclick="logout()">Log ud</button>
 </div>
+
+<h2>Kategorier</h2>
 
 <button class="top-button" onclick="showScreen('missingScreen')">📋 Se hvad der mangler</button>
 <button class="top-button" onclick="startNewTrip()">↻ Start ny rejse</button>
@@ -240,9 +159,12 @@ Redigering er slået til. Brug ✏️ for at redigere og 🗑️ for at slette.
 <button onclick="startNewTrip()">↻<br>Ny rejse</button>
 </nav>
 
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getDatabase, ref, onValue, set, off } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 const firebaseConfig={
 apiKey:"AIzaSyDlKEP7_KezbNVEviM77GrvlH8u68vNwTQ",
@@ -256,19 +178,18 @@ appId:"1:359809963583:web:7a98e4e94bd2fd3fdb8a8a"
 
 const app=initializeApp(firebaseConfig);
 const db=getDatabase(app);
+const auth=getAuth(app);
 
-let currentFamily=localStorage.getItem("currentFamily") || "rykov";
+const FAMILY_ID="rykov";
+const DEFAULT_SECTION_NAME="__default__";
+
 let dataRef=null;
-
 let data={categories:[]};
 let selectedCategory="";
 let editMode=false;
 let currentScreen="listScreen";
 
-const DEFAULT_SECTION_NAME="__default__";
-
 const defaultFamilyData={
-rykov:{
 categories:[
 {name:"Pernille",icon:"👩",sections:[
 {name:DEFAULT_SECTION_NAME,collapsed:false,items:[{name:"Pas",done:false}]},
@@ -310,32 +231,60 @@ categories:[
 ]}
 ]}
 ]
-},
-nielsen:{
-categories:[
-{name:"Mor",icon:"👩",sections:[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}]},
-{name:"Far",icon:"👨",sections:[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}]},
-{name:"Barn",icon:"👧",sections:[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}]}
-]
-}
 };
 
-function getFamilyPath(){
-return "families/"+currentFamily;
+window.login=function(){
+const email=document.getElementById("emailInput").value.trim();
+const password=document.getElementById("passwordInput").value;
+
+document.getElementById("loginError").innerText="";
+
+signInWithEmailAndPassword(auth,email,password).catch(error=>{
+document.getElementById("loginError").innerText="Kunne ikke logge ind. Tjek email og kodeord.";
+});
+};
+
+window.signup=function(){
+const email=document.getElementById("emailInput").value.trim();
+const password=document.getElementById("passwordInput").value;
+
+document.getElementById("loginError").innerText="";
+
+createUserWithEmailAndPassword(auth,email,password).catch(error=>{
+document.getElementById("loginError").innerText="Kunne ikke oprette bruger. Kodeord skal typisk være mindst 6 tegn.";
+});
+};
+
+window.logout=function(){
+signOut(auth);
+};
+
+onAuthStateChanged(auth,user=>{
+if(user){
+document.getElementById("loginScreen").classList.add("hidden");
+document.getElementById("appShell").classList.remove("hidden");
+document.getElementById("userEmail").innerText=user.email;
+startListening();
+}else{
+if(dataRef)off(dataRef);
+dataRef=null;
+data={categories:[]};
+selectedCategory="";
+document.getElementById("loginScreen").classList.remove("hidden");
+document.getElementById("appShell").classList.add("hidden");
 }
+});
 
 function startListening(){
-if(dataRef){
-off(dataRef);
-}
+if(dataRef)off(dataRef);
 
-dataRef=ref(db,getFamilyPath());
+dataRef=ref(db,"families/"+FAMILY_ID);
 
 onValue(dataRef,(snapshot)=>{
 if(snapshot.exists()){
 data=normalizeData(snapshot.val());
 }else{
-data=structuredClone(defaultFamilyData[currentFamily] || {categories:[]});
+data=structuredClone(defaultFamilyData);
 set(dataRef,data);
 }
 
@@ -394,6 +343,7 @@ sections:sections
 }
 
 function save(){
+if(!dataRef)return;
 set(dataRef,data);
 }
 
@@ -432,7 +382,6 @@ return section.items.length;
 }
 
 function render(){
-document.getElementById("familySelect").value=currentFamily;
 renderCategories();
 renderItems();
 renderCategoryCheckboxes();
@@ -456,9 +405,7 @@ const total=itemCount(category);
 const div=document.createElement("div");
 div.className="category";
 
-if(category.name===selectedCategory){
-div.classList.add("active");
-}
+if(category.name===selectedCategory)div.classList.add("active");
 
 div.onclick=function(){
 selectedCategory=category.name;
@@ -510,23 +457,18 @@ const categoryIndex=getSelectedCategoryIndex();
 const editButton=document.createElement("button");
 editButton.className="edit-btn";
 editButton.textContent="✏️";
-editButton.onclick=function(){
-editCategory(categoryIndex);
-};
+editButton.onclick=function(){editCategory(categoryIndex);};
 title.appendChild(editButton);
 
 const deleteButton=document.createElement("button");
 deleteButton.className="edit-btn";
 deleteButton.textContent="🗑️";
-deleteButton.onclick=function(){
-deleteCategory(categoryIndex);
-};
+deleteButton.onclick=function(){deleteCategory(categoryIndex);};
 title.appendChild(deleteButton);
 }
 
 const total=itemCount(category);
 const done=countDone(category);
-
 progress.innerText=done+" / "+total;
 
 category.sections.forEach((section,sectionIndex)=>{
@@ -540,29 +482,20 @@ if(!isDefaultSection){
 sectionDiv.addEventListener("dragstart",function(e){
 e.stopPropagation();
 sectionDiv.classList.add("dragging");
-e.dataTransfer.setData("text/plain",JSON.stringify({
-type:"section",
-sectionIndex:sectionIndex
-}));
+e.dataTransfer.setData("text/plain",JSON.stringify({type:"section",sectionIndex}));
 });
 
 sectionDiv.addEventListener("dragend",function(){
 sectionDiv.classList.remove("dragging");
-document.querySelectorAll(".section").forEach(sectionElement=>{
-sectionElement.classList.remove("drag-over");
-});
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("drag-over"));
 });
 
 sectionDiv.addEventListener("dragover",function(e){
 e.preventDefault();
-
 let dragData;
 try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
-
 if(dragData && dragData.type==="section"){
-document.querySelectorAll(".section").forEach(sectionElement=>{
-sectionElement.classList.remove("drag-over");
-});
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("drag-over"));
 sectionDiv.classList.add("drag-over");
 }
 });
@@ -574,15 +507,9 @@ sectionDiv.classList.remove("drag-over");
 sectionDiv.addEventListener("drop",function(e){
 e.preventDefault();
 sectionDiv.classList.remove("drag-over");
-
 let dragData;
 try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
-
-if(!dragData)return;
-
-if(dragData.type==="section"){
-moveSection(dragData.sectionIndex,sectionIndex);
-}
+if(dragData && dragData.type==="section")moveSection(dragData.sectionIndex,sectionIndex);
 });
 }
 
@@ -605,15 +532,8 @@ sectionTitle.innerHTML=`
 <span class="section-count">${doneInSection} / ${totalInSection}</span>
 `;
 
-collapseIcon.onclick=function(e){
-e.stopPropagation();
-toggleSection(sectionIndex);
-};
-
-sectionTitle.onclick=function(e){
-e.stopPropagation();
-toggleSection(sectionIndex);
-};
+collapseIcon.onclick=function(e){e.stopPropagation();toggleSection(sectionIndex);};
+sectionTitle.onclick=function(e){e.stopPropagation();toggleSection(sectionIndex);};
 
 header.appendChild(collapseIcon);
 header.appendChild(sectionTitle);
@@ -621,29 +541,20 @@ header.appendChild(sectionTitle);
 const addButton=document.createElement("button");
 addButton.className="edit-btn";
 addButton.textContent="➕";
-addButton.onclick=function(e){
-e.stopPropagation();
-addItemToSection(sectionIndex);
-};
+addButton.onclick=function(e){e.stopPropagation();addItemToSection(sectionIndex);};
 header.appendChild(addButton);
 
 if(editMode){
 const editSectionButton=document.createElement("button");
 editSectionButton.className="edit-btn";
 editSectionButton.textContent="✏️";
-editSectionButton.onclick=function(e){
-e.stopPropagation();
-editSection(sectionIndex);
-};
+editSectionButton.onclick=function(e){e.stopPropagation();editSection(sectionIndex);};
 header.appendChild(editSectionButton);
 
 const deleteSectionButton=document.createElement("button");
 deleteSectionButton.className="edit-btn";
 deleteSectionButton.textContent="🗑️";
-deleteSectionButton.onclick=function(e){
-e.stopPropagation();
-deleteSection(sectionIndex);
-};
+deleteSectionButton.onclick=function(e){e.stopPropagation();deleteSection(sectionIndex);};
 header.appendChild(deleteSectionButton);
 }
 
@@ -655,13 +566,9 @@ dropArea.className="section-drop";
 
 dropArea.addEventListener("dragover",function(e){
 e.preventDefault();
-
 let dragData;
 try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
-
-if(dragData && dragData.type==="item"){
-dropArea.classList.add("drag-over");
-}
+if(dragData && dragData.type==="item")dropArea.classList.add("drag-over");
 });
 
 dropArea.addEventListener("dragleave",function(){
@@ -671,15 +578,9 @@ dropArea.classList.remove("drag-over");
 dropArea.addEventListener("drop",function(e){
 e.preventDefault();
 dropArea.classList.remove("drag-over");
-
 let dragData;
 try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
-
-if(!dragData)return;
-
-if(dragData.type==="item"){
-moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,section.items.length);
-}
+if(dragData && dragData.type==="item")moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,section.items.length);
 });
 
 if(!section.collapsed || isDefaultSection){
@@ -691,34 +592,21 @@ div.draggable=true;
 div.addEventListener("dragstart",function(e){
 e.stopPropagation();
 div.classList.add("dragging");
-e.dataTransfer.setData("text/plain",JSON.stringify({
-type:"item",
-sectionIndex:sectionIndex,
-itemIndex:itemIndex
-}));
+e.dataTransfer.setData("text/plain",JSON.stringify({type:"item",sectionIndex,itemIndex}));
 });
 
 div.addEventListener("dragend",function(){
 div.classList.remove("dragging");
-document.querySelectorAll(".item").forEach(itemElement=>{
-itemElement.classList.remove("drag-over");
-});
-document.querySelectorAll(".section-drop").forEach(area=>{
-area.classList.remove("drag-over");
-});
+document.querySelectorAll(".item").forEach(i=>i.classList.remove("drag-over"));
+document.querySelectorAll(".section-drop").forEach(a=>a.classList.remove("drag-over"));
 });
 
 div.addEventListener("dragover",function(e){
 e.preventDefault();
-
 let dragData;
 try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
-
 if(dragData && dragData.type==="item"){
-document.querySelectorAll(".item").forEach(itemElement=>{
-itemElement.classList.remove("drag-over");
-});
-
+document.querySelectorAll(".item").forEach(i=>i.classList.remove("drag-over"));
 div.classList.add("drag-over");
 }
 });
@@ -730,20 +618,12 @@ div.classList.remove("drag-over");
 div.addEventListener("drop",function(e){
 e.preventDefault();
 div.classList.remove("drag-over");
-
 let dragData;
 try{dragData=JSON.parse(e.dataTransfer.getData("text/plain"));}catch{dragData=null;}
-
-if(!dragData)return;
-
-if(dragData.type==="item"){
-moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,itemIndex);
-}
+if(dragData && dragData.type==="item")moveItem(dragData.sectionIndex,dragData.itemIndex,sectionIndex,itemIndex);
 });
 
-if(item.done){
-div.classList.add("done");
-}
+if(item.done)div.classList.add("done");
 
 div.innerHTML=`
 <input type="checkbox" ${item.done?"checked":""}>
@@ -758,17 +638,13 @@ if(editMode){
 const editButton=document.createElement("button");
 editButton.className="edit-btn";
 editButton.textContent="✏️";
-editButton.onclick=function(){
-editItem(sectionIndex,itemIndex);
-};
+editButton.onclick=function(){editItem(sectionIndex,itemIndex);};
 div.appendChild(editButton);
 
 const deleteButton=document.createElement("button");
 deleteButton.className="edit-btn";
 deleteButton.textContent="🗑️";
-deleteButton.onclick=function(){
-deleteItem(sectionIndex,itemIndex);
-};
+deleteButton.onclick=function(){deleteItem(sectionIndex,itemIndex);};
 div.appendChild(deleteButton);
 }
 
@@ -786,7 +662,6 @@ const container=document.getElementById("missingList");
 const summary=document.getElementById("missingSummary");
 
 container.innerHTML="";
-
 let totalMissing=0;
 
 data.categories.forEach(category=>{
@@ -857,53 +732,39 @@ container.appendChild(categoryDiv);
 
 window.toggleMissingItem=function(categoryIndex,sectionIndex,itemIndex){
 const item=data.categories[categoryIndex].sections[sectionIndex].items[itemIndex];
-
 item.done=!item.done;
-
 render();
 save();
 };
 
 function getDefaultSection(category){
 let section=category.sections.find(section=>section.name===DEFAULT_SECTION_NAME);
-
 if(!section){
 section={name:DEFAULT_SECTION_NAME,collapsed:false,items:[]};
 category.sections.unshift(section);
 }
-
 return section;
 }
 
 function addItemToDefaultSection(){
 const category=getSelectedCategory();
-
 if(!category)return;
 
 const section=getDefaultSection(category);
 
 const name=prompt("Tilføj ting til "+category.name+":");
-
 if(name===null)return;
 
 const trimmedName=name.trim();
-
 if(!trimmedName)return;
 
-const exists=section.items.some(
-item=>item.name.toLowerCase()===trimmedName.toLowerCase()
-);
-
+const exists=section.items.some(item=>item.name.toLowerCase()===trimmedName.toLowerCase());
 if(exists){
 alert("Tingen findes allerede.");
 return;
 }
 
-section.items.push({
-name:trimmedName,
-done:false
-});
-
+section.items.push({name:trimmedName,done:false});
 render();
 save();
 }
@@ -911,9 +772,7 @@ save();
 function toggleSection(sectionIndex){
 const category=getSelectedCategory();
 if(!category)return;
-
 category.sections[sectionIndex].collapsed=!category.sections[sectionIndex].collapsed;
-
 render();
 save();
 }
@@ -921,7 +780,6 @@ save();
 function moveSection(fromIndex,toIndex){
 const category=getSelectedCategory();
 if(!category)return;
-
 if(fromIndex===toIndex)return;
 
 const movedSection=category.sections.splice(fromIndex,1)[0];
@@ -931,16 +789,13 @@ category.sections.splice(fromIndex,0,movedSection);
 return;
 }
 
-if(fromIndex<toIndex){
-toIndex--;
-}
+if(fromIndex<toIndex)toIndex--;
 
 if(category.sections[toIndex] && category.sections[toIndex].name===DEFAULT_SECTION_NAME){
 toIndex=1;
 }
 
 category.sections.splice(toIndex,0,movedSection);
-
 render();
 save();
 }
@@ -955,15 +810,11 @@ const toSection=category.sections[toSectionIndex];
 if(!fromSection || !toSection)return;
 
 const movedItem=fromSection.items.splice(fromItemIndex,1)[0];
-
 if(!movedItem)return;
 
-if(fromSectionIndex===toSectionIndex && fromItemIndex<toItemIndex){
-toItemIndex--;
-}
+if(fromSectionIndex===toSectionIndex && fromItemIndex<toItemIndex)toItemIndex--;
 
 toSection.items.splice(toItemIndex,0,movedItem);
-
 render();
 save();
 }
@@ -974,12 +825,10 @@ container.innerHTML="";
 
 data.categories.forEach(category=>{
 const label=document.createElement("label");
-
 label.innerHTML=`
 <input type="checkbox" value="${category.name}">
 ${category.icon||""} ${category.name}
 `;
-
 container.appendChild(label);
 });
 }
@@ -995,26 +844,6 @@ editButton.style.display="none";
 editMode=false;
 }
 }
-
-window.changeFamily=function(){
-const select=document.getElementById("familySelect");
-
-currentFamily=select.value;
-localStorage.setItem("currentFamily",currentFamily);
-
-data={categories:[]};
-selectedCategory="";
-editMode=false;
-currentScreen="listScreen";
-
-document.querySelectorAll(".screen").forEach(s=>{
-s.classList.remove("active");
-});
-
-document.getElementById("listScreen").classList.add("active");
-
-startListening();
-};
 
 window.toggleItem=function(sectionIndex,itemIndex){
 const category=getSelectedCategory();
@@ -1053,9 +882,7 @@ cat.sections=[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}];
 
 const section=getDefaultSection(cat);
 
-const exists=section.items.some(
-i=>i.name.toLowerCase()===name.toLowerCase()
-);
+const exists=section.items.some(i=>i.name.toLowerCase()===name.toLowerCase());
 
 if(!exists){
 section.items.push({name:name,done:false});
@@ -1063,7 +890,6 @@ section.items.push({name:name,done:false});
 });
 
 input.value="";
-
 render();
 save();
 };
@@ -1078,27 +904,19 @@ if(!section)return;
 const sectionLabel=section.name===DEFAULT_SECTION_NAME ? category.name : section.name;
 
 const name=prompt("Tilføj ting til "+sectionLabel+":");
-
 if(name===null)return;
 
 const trimmedName=name.trim();
-
 if(!trimmedName)return;
 
-const exists=section.items.some(
-item=>item.name.toLowerCase()===trimmedName.toLowerCase()
-);
+const exists=section.items.some(item=>item.name.toLowerCase()===trimmedName.toLowerCase());
 
 if(exists){
 alert("Tingen findes allerede.");
 return;
 }
 
-section.items.push({
-name:trimmedName,
-done:false
-});
-
+section.items.push({name:trimmedName,done:false});
 section.collapsed=false;
 
 render();
@@ -1114,9 +932,7 @@ alert("Skriv et kategorinavn.");
 return;
 }
 
-const exists=data.categories.some(
-c=>c.name.toLowerCase()===name.toLowerCase()
-);
+const exists=data.categories.some(c=>c.name.toLowerCase()===name.toLowerCase());
 
 if(exists){
 alert("Kategorien findes allerede.");
@@ -1126,9 +942,7 @@ return;
 data.categories.push({
 name:name,
 icon:emoji,
-sections:[
-{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}
-]
+sections:[{name:DEFAULT_SECTION_NAME,collapsed:false,items:[]}]
 });
 
 selectedCategory=name;
@@ -1145,28 +959,19 @@ const category=getSelectedCategory();
 if(!category)return;
 
 const name=prompt("Navn på ny underkategori:");
-
 if(name===null)return;
 
 const trimmedName=name.trim();
-
 if(!trimmedName)return;
 
-const exists=category.sections.some(
-section=>section.name.toLowerCase()===trimmedName.toLowerCase()
-);
+const exists=category.sections.some(section=>section.name.toLowerCase()===trimmedName.toLowerCase());
 
 if(exists){
 alert("Underkategorien findes allerede.");
 return;
 }
 
-category.sections.push({
-name:trimmedName,
-collapsed:false,
-items:[]
-});
-
+category.sections.push({name:trimmedName,collapsed:false,items:[]});
 render();
 save();
 };
@@ -1188,9 +993,7 @@ alert("Kategorien skal have et navn.");
 return;
 }
 
-const exists=data.categories.some((c,i)=>
-i!==index && c.name.toLowerCase()===trimmedName.toLowerCase()
-);
+const exists=data.categories.some((c,i)=>i!==index && c.name.toLowerCase()===trimmedName.toLowerCase());
 
 if(exists){
 alert("Der findes allerede en kategori med det navn.");
@@ -1222,7 +1025,6 @@ return;
 }
 
 const newName=prompt("Ret underkategori:",section.name);
-
 if(newName===null)return;
 
 const trimmedName=newName.trim();
@@ -1232,9 +1034,7 @@ alert("Underkategorien skal have et navn.");
 return;
 }
 
-const exists=category.sections.some((s,i)=>
-i!==sectionIndex && s.name.toLowerCase()===trimmedName.toLowerCase()
-);
+const exists=category.sections.some((s,i)=>i!==sectionIndex && s.name.toLowerCase()===trimmedName.toLowerCase());
 
 if(exists){
 alert("Der findes allerede en underkategori med det navn.");
@@ -1242,7 +1042,6 @@ return;
 }
 
 section.name=trimmedName;
-
 render();
 save();
 };
@@ -1264,7 +1063,6 @@ return;
 }
 
 item.name=trimmedName;
-
 render();
 save();
 };
@@ -1276,7 +1074,6 @@ const category=getSelectedCategory();
 if(!category)return;
 
 category.sections[sectionIndex].items.splice(itemIndex,1);
-
 render();
 save();
 };
@@ -1365,7 +1162,6 @@ updateEditButtonVisibility(id);
 render();
 };
 
-document.getElementById("familySelect").value=currentFamily;
 currentScreen="listScreen";
 updateEditButtonVisibility("listScreen");
 startListening();
